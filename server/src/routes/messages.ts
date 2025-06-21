@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
-import { prisma } from '../utils/prisma';
+import { supabase } from '../utils/supabase';
+import cuid from 'cuid';
 
 const router = Router();
 
@@ -18,34 +19,23 @@ router.get('/listing/:listingId', async (req: Request, res: Response) => {
     const { userId } = req.user!;
 
     // Get messages where user is either sender or receiver
-    const messages = await prisma.message.findMany({
-      where: {
-        listingId,
-        OR: [
-          { senderId: userId },
-          { receiverId: userId }
-        ]
-      },
-      include: {
-        sender: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        },
-        receiver: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      },
-      orderBy: { timestamp: 'asc' }
-    });
+    const { data: messages, error } = await supabase
+      .from('messages')
+      .select(`
+        *,
+        sender:users(id, name, email),
+        receiver:users(id, name, email)
+      `)
+      .eq('listingId', listingId)
+      .or(`senderId.eq.${userId},receiverId.eq.${userId}`)
+      .order('timestamp', { ascending: true });
 
-    res.json({ messages });
+    if (error) {
+      console.error('Supabase error:', error);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    res.json({ messages: messages || [] });
   } catch (error) {
     console.error('Get messages error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -64,48 +54,49 @@ router.post('/', validateMessage, async (req: Request, res: Response) => {
     const senderId = req.user!.userId;
 
     // Verify the listing exists
-    const listing = await prisma.listing.findUnique({
-      where: { id: listingId }
-    });
+    const { data: listing, error: listingError } = await supabase
+      .from('listings')
+      .select('id')
+      .eq('id', listingId)
+      .single();
 
-    if (!listing) {
+    if (listingError || !listing) {
       return res.status(404).json({ error: 'Listing not found' });
     }
 
     // Verify receiver exists
-    const receiver = await prisma.user.findUnique({
-      where: { id: receiverId }
-    });
+    const { data: receiver, error: receiverError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('id', receiverId)
+      .single();
 
-    if (!receiver) {
+    if (receiverError || !receiver) {
       return res.status(404).json({ error: 'Receiver not found' });
     }
 
     // Create message
-    const message = await prisma.message.create({
-      data: {
+    const { data: message, error: createError } = await supabase
+      .from('messages')
+      .insert({
+        id: cuid(),
         content,
-        senderId,
-        receiverId,
-        listingId
-      },
-      include: {
-        sender: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        },
-        receiver: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
-    });
+        senderId: senderId,
+        receiverId: receiverId,
+        listingId: listingId,
+        timestamp: new Date()
+      })
+      .select(`
+        *,
+        sender:users(id, name, email),
+        receiver:users(id, name, email)
+      `)
+      .single();
+
+    if (createError) {
+      console.error('Supabase error:', createError);
+      return res.status(500).json({ error: 'Database error' });
+    }
 
     res.status(201).json({
       message: 'Message sent successfully',
@@ -123,43 +114,26 @@ router.get('/conversations', async (req: Request, res: Response) => {
     const { userId } = req.user!;
 
     // Get all conversations where user is involved
-    const conversations = await prisma.message.findMany({
-      where: {
-        OR: [
-          { senderId: userId },
-          { receiverId: userId }
-        ]
-      },
-      include: {
-        listing: {
-          select: {
-            id: true,
-            title: true,
-            imageUrls: true
-          }
-        },
-        sender: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        },
-        receiver: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      },
-      orderBy: { timestamp: 'desc' }
-    });
+    const { data: conversations, error } = await supabase
+      .from('messages')
+      .select(`
+        *,
+        listing:listings(id, title, imageUrls),
+        sender:users(id, name, email),
+        receiver:users(id, name, email)
+      `)
+      .or(`senderId.eq.${userId},receiverId.eq.${userId}`)
+      .order('timestamp', { ascending: false });
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return res.status(500).json({ error: 'Database error' });
+    }
 
     // Group conversations by listing and other user
     const conversationMap = new Map();
     
-    conversations.forEach(msg => {
+    (conversations || []).forEach(msg => {
       const otherUserId = msg.senderId === userId ? msg.receiverId : msg.senderId;
       const key = `${msg.listingId}-${otherUserId}`;
       
