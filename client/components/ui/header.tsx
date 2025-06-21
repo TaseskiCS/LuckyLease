@@ -83,7 +83,7 @@ export default function Header() {
               How It Works
             </Link>
             <Link
-              href="/#support"
+              href="/contact"
               className="text-gray-600 hover:text-emerald-600 transition-colors"
             >
               Support
