@@ -1,4 +1,4 @@
-// /server/src/routes/email.ts
+
 import { Router, Request, Response } from 'express';
 import nodemailer from 'nodemailer';
 
@@ -11,6 +11,9 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER, // your Gmail address
     pass: process.env.EMAIL_PASS, // your 16-char app password
   },
+  tls: {
+    rejectUnauthorized: false 
+  }
 });
 
 // Verify SMTP connection (optional)
@@ -25,9 +28,9 @@ router.post('/', async (req: Request, res: Response) => {
   }
 
   const mailOptions = {
-    from:    process.env.EMAIL_USER,   // must match authenticated Gmail
-    replyTo: email,                    // replies go to the form-submitter
-    to:      process.env.EMAIL_TO,     // where you want to receive these emails
+    from:    process.env.EMAIL_USER,   
+    replyTo: email,                    
+    to:      process.env.EMAIL_TO,     
     subject: `New contact form message from ${name}`,
     text:    `You got a new message:\n\nName: ${name}\nEmail: ${email}\n\n${message}`,
     html:    `
