@@ -55,7 +55,7 @@ export default function Header() {
             <div>
               <h1 className="text-xl font-bold text-emerald-800">LuckyLease</h1>
               <p className="text-xs text-emerald-600">
-                Find your perfect sublease
+                Find your lucky sublease
               </p>
             </div>
           </Link>
@@ -69,8 +69,7 @@ export default function Header() {
               <Layout className="h-4 w-4 mr-2" />
               Browse
             </Link>
-            
-            
+
             <Link
               href="/map"
               className="text-gray-600 hover:text-emerald-600 transition-colors flex items-center"
@@ -80,8 +79,8 @@ export default function Header() {
             </Link>
             {user && (
               <Button className="bg-emerald-600 hover:bg-emerald-700">
-              <Link href="/listings/create" className="flex items-center">
-                <Plus className="h-4 w-4 mr-2" />
+                <Link href="/listings/create" className="flex items-center">
+                  <Plus className="h-4 w-4 mr-2" />
                   List Your Space
                 </Link>
               </Button>
@@ -94,8 +93,8 @@ export default function Header() {
               <div className="w-8 h-8 animate-pulse bg-gray-200 rounded-full"></div>
             ) : user ? (
               <div className="flex items-center space-x-3">
-                <button 
-                  onClick={() => router.push('/dashboard')}
+                <button
+                  onClick={() => router.push("/dashboard")}
                   className="flex items-center space-x-2 px-3 py-2 bg-emerald-50 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer"
                 >
                   <User className="w-4 h-4 text-emerald-600" />
