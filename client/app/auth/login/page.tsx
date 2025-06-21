@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, Clover, ArrowLeft } from "lucide-react";
@@ -15,6 +15,14 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      router.push("/listings");
+    }
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,14 +44,13 @@ export default function LoginPage() {
 
       if (!response.ok) {
         throw new Error(data.error || "Login failed");
-      }
-
-      // Store token in localStorage (in production, use httpOnly cookies)
+      } // Store token in localStorage (in production, use httpOnly cookies)
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
       toast.success("Login successful!");
-      router.push("/listings");
+      // Force a page reload to update the header component
+      window.location.href = "/listings/browse";
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Login failed");
     } finally {
