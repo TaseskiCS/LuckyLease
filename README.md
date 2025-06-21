@@ -1,4 +1,4 @@
-# RoomRelay - A Sublet Marketplace
+# LuckyLease - A Sublet Marketplace
 
 
 A full-stack MVP for a peer-to-peer sublet marketplace  think Facebook Marketplace but designed for short-term housing like student sublets, intern rentals, or digital nomad stays.
