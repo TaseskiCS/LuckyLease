@@ -1,6 +1,16 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import dotenv from 'dotenv';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+// Ensure environment variables are loaded
+dotenv.config();
+
+const geminiApiKey = process.env.GEMINI_API_KEY;
+
+if (!geminiApiKey) {
+  throw new Error('Missing required environment variable: GEMINI_API_KEY must be set');
+}
+
+const genAI = new GoogleGenerativeAI(geminiApiKey);
 
 export const generateListingSummary = async (title: string, description: string, price: number, location: string): Promise<{ summary: string; tags: string[] }> => {
   try {
