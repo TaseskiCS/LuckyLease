@@ -1,6 +1,9 @@
-# RoomRelay - Peer-to-Peer Sublet Marketplace
+# RoomRelay - Sublet Marketplace
 
-A full-stack MVP for a peer-to-peer sublet marketplace — think Facebook Marketplace but designed for short-term housing like student sublets, intern rentals, or digital nomad stays.
+
+A full-stack MVP for a peer-to-peer sublet marketplace  think Facebook Marketplace but designed for short-term housing like student sublets, intern rentals, or digital nomad stays.
+
+![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
 ## 🚀 Features
 
@@ -43,85 +46,9 @@ RoomRelay/
 │   │   ├── sockets/      # Socket.io handlers
 │   │   └── utils/        # Utility functions
 │   └── prisma/           # Database schema
-└── Context.md            # Project requirements
 ```
 
-## 🛠️ Setup Instructions
 
-### Prerequisites
-- Node.js 18+ 
-- npm or yarn
-- Supabase account
-- Google Gemini API key
-
-### 1. Clone and Install Dependencies
-
-```bash
-# Install client dependencies
-cd client
-npm install
-
-# Install server dependencies
-cd ../server
-npm install
-```
-
-### 2. Database Setup
-
-1. Create a new Supabase project
-2. Get your database URL and API keys
-3. Update the Prisma schema if needed
-4. Run database migrations:
-
-```bash
-cd server
-npx prisma generate
-npx prisma db push
-```
-
-### 3. Environment Variables
-
-#### Client (.env.local)
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8080
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_KEY=your-public-anon-key
-```
-
-#### Server (.env)
-```env
-PORT=8080
-DATABASE_URL=postgresql://user:password@db.supabase.co:5432/postgres
-JWT_SECRET=your-super-secret-key
-SUPABASE_BUCKET=listings
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE=your-service-role-secret
-GEMINI_API_KEY=your-gemini-api-key
-CLIENT_URL=http://localhost:3000
-```
-
-### 4. Supabase Storage Setup
-
-1. Create a new bucket called "listings"
-2. Set bucket permissions to allow authenticated uploads
-3. Configure CORS if needed
-
-### 5. Run Development Servers
-
-```bash
-# Terminal 1 - Start backend
-cd server
-npm run dev
-
-# Terminal 2 - Start frontend
-cd client
-npm run dev
-```
-
-The application will be available at:
-- Frontend: http://localhost:3000
-- Backend: http://localhost:8080
-- Health Check: http://localhost:8080/health
 
 ## 📊 Database Schema
 
@@ -236,17 +163,6 @@ The application will be available at:
 - Video tours
 - Background checks
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## 📄 License
-
-MIT License - see LICENSE file for details
 
 ## 🆘 Support
 
