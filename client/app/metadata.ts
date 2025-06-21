@@ -23,8 +23,8 @@ export const metadata: Metadata = {
   ],
   authors: [
     { name: "Spencer Kelly " },
-    { name: "" },
-    { name: "" },
-    { name: "" },
+    { name: "Michael Marsillo" },
+    { name: "Tony Taseski" },
+    { name: "Gurshan Sidhar" },
   ],
 };
