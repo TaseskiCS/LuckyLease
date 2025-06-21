@@ -6,8 +6,8 @@ import { Toaster } from "react-hot-toast";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "RoomRelay - Peer-to-Peer Sublet Marketplace",
-  description: "Find and list short-term housing for students, interns, and digital nomads",
+  title: "RoomRelay - A Sublet Marketplace",
+  description: "Find and list short-term housing for students and interns",
 };
 
 export default function RootLayout({
