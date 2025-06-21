@@ -1,0 +1,460 @@
+{
+  "canada": {
+    "ontario": {
+      "label": "Ontario",
+      "universities": [
+        { "value": "university-of-toronto", "name": "University of Toronto" },
+        { "value": "york-university", "name": "York University" },
+        { "value": "ryerson-university", "name": "Toronto Metropolitan University (TMU)" },
+        { "value": "mcmaster-university", "name": "McMaster University" },
+        { "value": "university-of-waterloo", "name": "University of Waterloo" },
+        { "value": "wilfrid-laurier-university", "name": "Wilfrid Laurier University" },
+        { "value": "university-of-guelph", "name": "University of Guelph" },
+        { "value": "queens-university", "name": "Queen's University" },
+        { "value": "carleton-university", "name": "Carleton University" },
+        { "value": "university-of-ottawa", "name": "University of Ottawa" },
+        { "value": "western-university", "name": "Western University" },
+        { "value": "university-of-windsor", "name": "University of Windsor" },
+        { "value": "brock-university", "name": "Brock University" },
+        { "value": "lakehead-university", "name": "Lakehead University" },
+        { "value": "laurentian-university", "name": "Laurentian University" },
+        { "value": "nipissing-university", "name": "Nipissing University" },
+        { "value": "trent-university", "name": "Trent University" },
+        { "value": "ontario-tech-university", "name": "Ontario Tech University" }
+      ],
+      "colleges": [
+        { "value": "seneca-college", "name": "Seneca Polytechnic" },
+        { "value": "humber-college", "name": "Humber College" },
+        { "value": "george-brown-college", "name": "George Brown College" },
+        { "value": "centennial-college", "name": "Centennial College" },
+        { "value": "sheridan-college", "name": "Sheridan College" },
+        { "value": "algonquin-college", "name": "Algonquin College" },
+        { "value": "fanshawe-college", "name": "Fanshawe College" },
+        { "value": "mohawk-college", "name": "Mohawk College" },
+        { "value": "conestoga-college", "name": "Conestoga College" },
+        { "value": "durham-college", "name": "Durham College" }
+      ]
+    },
+    "quebec": {
+      "label": "Quebec",
+      "universities": [
+        { "value": "mcgill-university", "name": "McGill University" },
+        { "value": "concordia-university", "name": "Concordia University" },
+        { "value": "universite-de-montreal", "name": "Université de Montréal" },
+        { "value": "uqam", "name": "Université du Québec à Montréal (UQAM)" },
+        { "value": "laval-university", "name": "Université Laval" },
+        { "value": "universite-sherbrooke", "name": "Université de Sherbrooke" },
+        { "value": "bishop-university", "name": "Bishop's University" }
+      ]
+    },
+    "british_columbia": {
+      "label": "British Columbia",
+      "universities": [
+        { "value": "ubc", "name": "University of British Columbia (UBC)" },
+        { "value": "sfu", "name": "Simon Fraser University" },
+        { "value": "uvic", "name": "University of Victoria" },
+        { "value": "emily-carr", "name": "Emily Carr University" },
+        { "value": "capilano-university", "name": "Capilano University" },
+        { "value": "kwantlen", "name": "Kwantlen Polytechnic University" }
+      ],
+      "colleges": [
+        { "value": "bcit", "name": "British Columbia Institute of Technology" }
+      ]
+    },
+    "alberta": {
+      "label": "Alberta",
+      "universities": [
+        { "value": "university-of-alberta", "name": "University of Alberta" },
+        { "value": "university-of-calgary", "name": "University of Calgary" },
+        { "value": "athabasca-university", "name": "Athabasca University" },
+        { "value": "macewan-university", "name": "MacEwan University" }
+      ],
+      "colleges": [
+        { "value": "sait", "name": "Southern Alberta Institute of Technology" },
+        { "value": "nait", "name": "Northern Alberta Institute of Technology" }
+      ]
+    },
+    "manitoba": {
+      "label": "Manitoba",
+      "universities": [
+        { "value": "university-of-manitoba", "name": "University of Manitoba" },
+        { "value": "university-of-winnipeg", "name": "University of Winnipeg" }
+      ],
+      "colleges": [
+        { "value": "red-river-college", "name": "Red River College Polytechnic" }
+      ]
+    },
+    "saskatchewan": {
+      "label": "Saskatchewan",
+      "universities": [
+        { "value": "university-of-saskatchewan", "name": "University of Saskatchewan" },
+        { "value": "university-of-regina", "name": "University of Regina" }
+      ]
+    },
+    "nova_scotia": {
+      "label": "Nova Scotia",
+      "universities": [
+        { "value": "dalhousie-university", "name": "Dalhousie University" },
+        { "value": "saint-marys-university", "name": "Saint Mary's University" },
+        { "value": "acadia-university", "name": "Acadia University" }
+      ],
+      "colleges": [
+        { "value": "nova-scotia-community-college", "name": "Nova Scotia Community College" }
+      ]
+    },
+    "new_brunswick": {
+      "label": "New Brunswick",
+      "universities": [
+        { "value": "university-of-new-brunswick", "name": "University of New Brunswick" },
+        { "value": "mount-allison-university", "name": "Mount Allison University" }
+      ]
+    },
+    "newfoundland_labrador": {
+      "label": "Newfoundland and Labrador",
+      "universities": [
+        { "value": "memorial-university", "name": "Memorial University of Newfoundland" }
+      ]
+    },
+    "prince_edward_island": {
+      "label": "Prince Edward Island",
+      "universities": [
+        { "value": "upei", "name": "University of Prince Edward Island" }
+      ]
+    }
+  },
+  "usa": {
+    "california": {
+      "label": "California",
+      "universities": [
+        { "value": "stanford-university", "name": "Stanford University" },
+        { "value": "uc-berkeley", "name": "University of California, Berkeley" },
+        { "value": "ucla", "name": "University of California, Los Angeles" },
+        { "value": "usc", "name": "University of Southern California" },
+        { "value": "caltech", "name": "California Institute of Technology" },
+        { "value": "uc-san-diego", "name": "University of California, San Diego" },
+        { "value": "uc-davis", "name": "University of California, Davis" },
+        { "value": "uc-irvine", "name": "University of California, Irvine" },
+        { "value": "uc-santa-barbara", "name": "University of California, Santa Barbara" },
+        { "value": "san-jose-state", "name": "San Jose State University" },
+        { "value": "cal-state-la", "name": "California State University, Los Angeles" },
+        { "value": "pepperdine", "name": "Pepperdine University" },
+        { "value": "loyola-marymount", "name": "Loyola Marymount University" }
+      ]
+    },
+    "new_york": {
+      "label": "New York",
+      "universities": [
+        { "value": "columbia-university", "name": "Columbia University" },
+        { "value": "nyu", "name": "New York University" },
+        { "value": "cornell-university", "name": "Cornell University" },
+        { "value": "syracuse-university", "name": "Syracuse University" },
+        { "value": "fordham-university", "name": "Fordham University" },
+        { "value": "university-of-rochester", "name": "University of Rochester" },
+        { "value": "suny-buffalo", "name": "SUNY Buffalo" },
+        { "value": "suny-stony-brook", "name": "SUNY Stony Brook" },
+        { "value": "pace-university", "name": "Pace University" },
+        { "value": "st-johns-university", "name": "St. John's University" }
+      ]
+    },
+    "massachusetts": {
+      "label": "Massachusetts",
+      "universities": [
+        { "value": "harvard-university", "name": "Harvard University" },
+        { "value": "mit", "name": "Massachusetts Institute of Technology" },
+        { "value": "boston-university", "name": "Boston University" },
+        { "value": "northeastern-university", "name": "Northeastern University" },
+        { "value": "tufts-university", "name": "Tufts University" },
+        { "value": "boston-college", "name": "Boston College" },
+        { "value": "umass-amherst", "name": "University of Massachusetts Amherst" },
+        { "value": "emerson-college", "name": "Emerson College" },
+        { "value": "suffolk-university", "name": "Suffolk University" }
+      ]
+    },
+    "texas": {
+      "label": "Texas",
+      "universities": [
+        { "value": "ut-austin", "name": "University of Texas at Austin" },
+        { "value": "texas-am", "name": "Texas A&M University" },
+        { "value": "rice-university", "name": "Rice University" },
+        { "value": "university-of-houston", "name": "University of Houston" },
+        { "value": "texas-tech", "name": "Texas Tech University" },
+        { "value": "baylor-university", "name": "Baylor University" },
+        { "value": "tcu", "name": "Texas Christian University" },
+        { "value": "ut-dallas", "name": "University of Texas at Dallas" },
+        { "value": "smu", "name": "Southern Methodist University" }
+      ]
+    },
+    "florida": {
+      "label": "Florida",
+      "universities": [
+        { "value": "university-of-florida", "name": "University of Florida" },
+        { "value": "florida-state", "name": "Florida State University" },
+        { "value": "university-of-miami", "name": "University of Miami" },
+        { "value": "florida-international", "name": "Florida International University" },
+        { "value": "ucf", "name": "University of Central Florida" },
+        { "value": "usf", "name": "University of South Florida" },
+        { "value": "florida-tech", "name": "Florida Institute of Technology" },
+        { "value": "nova-southeastern", "name": "Nova Southeastern University" }
+      ]
+    },
+    "illinois": {
+      "label": "Illinois",
+      "universities": [
+        { "value": "university-of-chicago", "name": "University of Chicago" },
+        { "value": "northwestern-university", "name": "Northwestern University" },
+        { "value": "uiuc", "name": "University of Illinois Urbana-Champaign" },
+        { "value": "depaul-university", "name": "DePaul University" },
+        { "value": "loyola-chicago", "name": "Loyola University Chicago" },
+        { "value": "illinois-tech", "name": "Illinois Institute of Technology" },
+        { "value": "uic", "name": "University of Illinois Chicago" }
+      ]
+    },
+    "pennsylvania": {
+      "label": "Pennsylvania",
+      "universities": [
+        { "value": "university-of-pennsylvania", "name": "University of Pennsylvania" },
+        { "value": "carnegie-mellon", "name": "Carnegie Mellon University" },
+        { "value": "penn-state", "name": "Pennsylvania State University" },
+        { "value": "drexel-university", "name": "Drexel University" },
+        { "value": "temple-university", "name": "Temple University" },
+        { "value": "pitt", "name": "University of Pittsburgh" },
+        { "value": "villanova", "name": "Villanova University" }
+      ]
+    },
+    "ohio": {
+      "label": "Ohio",
+      "universities": [
+        { "value": "ohio-state", "name": "Ohio State University" },
+        { "value": "case-western", "name": "Case Western Reserve University" },
+        { "value": "university-of-cincinnati", "name": "University of Cincinnati" },
+        { "value": "miami-university-ohio", "name": "Miami University" },
+        { "value": "ohio-university", "name": "Ohio University" },
+        { "value": "kent-state", "name": "Kent State University" }
+      ]
+    },
+    "michigan": {
+      "label": "Michigan",
+      "universities": [
+        { "value": "university-of-michigan", "name": "University of Michigan" },
+        { "value": "michigan-state", "name": "Michigan State University" },
+        { "value": "wayne-state", "name": "Wayne State University" },
+        { "value": "western-michigan", "name": "Western Michigan University" },
+        { "value": "central-michigan", "name": "Central Michigan University" }
+      ]
+    },
+    "georgia": {
+      "label": "Georgia",
+      "universities": [
+        { "value": "georgia-tech", "name": "Georgia Institute of Technology" },
+        { "value": "university-of-georgia", "name": "University of Georgia" },
+        { "value": "emory-university", "name": "Emory University" },
+        { "value": "georgia-state", "name": "Georgia State University" },
+        { "value": "georgia-southern", "name": "Georgia Southern University" }
+      ]
+    },
+    "north_carolina": {
+      "label": "North Carolina",
+      "universities": [
+        { "value": "unc-chapel-hill", "name": "University of North Carolina at Chapel Hill" },
+        { "value": "duke-university", "name": "Duke University" },
+        { "value": "nc-state", "name": "North Carolina State University" },
+        { "value": "wake-forest", "name": "Wake Forest University" },
+        { "value": "davidson-college", "name": "Davidson College" }
+      ]
+    },
+    "virginia": {
+      "label": "Virginia",
+      "universities": [
+        { "value": "university-of-virginia", "name": "University of Virginia" },
+        { "value": "virginia-tech", "name": "Virginia Tech" },
+        { "value": "james-madison", "name": "James Madison University" },
+        { "value": "vcu", "name": "Virginia Commonwealth University" },
+        { "value": "george-mason", "name": "George Mason University" }
+      ]
+    },
+    "washington": {
+      "label": "Washington",
+      "universities": [
+        { "value": "university-of-washington", "name": "University of Washington" },
+        { "value": "washington-state", "name": "Washington State University" },
+        { "value": "seattle-university", "name": "Seattle University" },
+        { "value": "gonzaga-university", "name": "Gonzaga University" },
+        { "value": "western-washington", "name": "Western Washington University" }
+      ]
+    },
+    "colorado": {
+      "label": "Colorado",
+      "universities": [
+        { "value": "university-of-colorado-boulder", "name": "University of Colorado Boulder" },
+        { "value": "colorado-state", "name": "Colorado State University" },
+        { "value": "colorado-school-of-mines", "name": "Colorado School of Mines" },
+        { "value": "university-of-denver", "name": "University of Denver" }
+      ]
+    },
+    "arizona": {
+      "label": "Arizona",
+      "universities": [
+        { "value": "arizona-state", "name": "Arizona State University" },
+        { "value": "university-of-arizona", "name": "University of Arizona" },
+        { "value": "northern-arizona", "name": "Northern Arizona University" }
+      ]
+    },
+    "oregon": {
+      "label": "Oregon",
+      "universities": [
+        { "value": "university-of-oregon", "name": "University of Oregon" },
+        { "value": "oregon-state", "name": "Oregon State University" },
+        { "value": "portland-state", "name": "Portland State University" }
+      ]
+    },
+    "utah": {
+      "label": "Utah",
+      "universities": [
+        { "value": "university-of-utah", "name": "University of Utah" },
+        { "value": "utah-state", "name": "Utah State University" },
+        { "value": "brigham-young", "name": "Brigham Young University" }
+      ]
+    },
+    "nevada": {
+      "label": "Nevada",
+      "universities": [
+        { "value": "unlv", "name": "University of Nevada, Las Vegas" },
+        { "value": "university-of-nevada-reno", "name": "University of Nevada, Reno" }
+      ]
+    },
+    "connecticut": {
+      "label": "Connecticut",
+      "universities": [
+        { "value": "yale-university", "name": "Yale University" },
+        { "value": "uconn", "name": "University of Connecticut" },
+        { "value": "wesleyan-university", "name": "Wesleyan University" }
+      ]
+    },
+    "new_jersey": {
+      "label": "New Jersey",
+      "universities": [
+        { "value": "princeton-university", "name": "Princeton University" },
+        { "value": "rutgers", "name": "Rutgers University" },
+        { "value": "stevens-tech", "name": "Stevens Institute of Technology" },
+        { "value": "seton-hall", "name": "Seton Hall University" }
+      ]
+    },
+    "maryland": {
+      "label": "Maryland",
+      "universities": [
+        { "value": "johns-hopkins", "name": "Johns Hopkins University" },
+        { "value": "university-of-maryland", "name": "University of Maryland" },
+        { "value": "loyola-maryland", "name": "Loyola University Maryland" }
+      ]
+    },
+    "wisconsin": {
+      "label": "Wisconsin",
+      "universities": [
+        { "value": "uw-madison", "name": "University of Wisconsin-Madison" },
+        { "value": "marquette", "name": "Marquette University" },
+        { "value": "uw-milwaukee", "name": "University of Wisconsin-Milwaukee" }
+      ]
+    },
+    "minnesota": {
+      "label": "Minnesota",
+      "universities": [
+        { "value": "university-of-minnesota", "name": "University of Minnesota" },
+        { "value": "carleton-college", "name": "Carleton College" },
+        { "value": "macalester-college", "name": "Macalester College" }
+      ]
+    },
+    "missouri": {
+      "label": "Missouri",
+      "universities": [
+        { "value": "washington-university-stl", "name": "Washington University in St. Louis" },
+        { "value": "university-of-missouri", "name": "University of Missouri" },
+        { "value": "saint-louis-university", "name": "Saint Louis University" }
+      ]
+    },
+    "tennessee": {
+      "label": "Tennessee",
+      "universities": [
+        { "value": "vanderbilt", "name": "Vanderbilt University" },
+        { "value": "university-of-tennessee", "name": "University of Tennessee" },
+        { "value": "memphis", "name": "University of Memphis" }
+      ]
+    },
+    "kentucky": {
+      "label": "Kentucky",
+      "universities": [
+        { "value": "university-of-kentucky", "name": "University of Kentucky" },
+        { "value": "university-of-louisville", "name": "University of Louisville" }
+      ]
+    },
+    "indiana": {
+      "label": "Indiana",
+      "universities": [
+        { "value": "indiana-university", "name": "Indiana University" },
+        { "value": "purdue-university", "name": "Purdue University" },
+        { "value": "notre-dame", "name": "University of Notre Dame" },
+        { "value": "butler-university", "name": "Butler University" }
+      ]
+    },
+    "iowa": {
+      "label": "Iowa",
+      "universities": [
+        { "value": "university-of-iowa", "name": "University of Iowa" },
+        { "value": "iowa-state", "name": "Iowa State University" }
+      ]
+    },
+    "kansas": {
+      "label": "Kansas",
+      "universities": [
+        { "value": "university-of-kansas", "name": "University of Kansas" },
+        { "value": "kansas-state", "name": "Kansas State University" }
+      ]
+    },
+    "nebraska": {
+      "label": "Nebraska",
+      "universities": [
+        { "value": "university-of-nebraska", "name": "University of Nebraska" }
+      ]
+    },
+    "south_carolina": {
+      "label": "South Carolina",
+      "universities": [
+        { "value": "university-of-south-carolina", "name": "University of South Carolina" },
+        { "value": "clemson", "name": "Clemson University" }
+      ]
+    },
+    "alabama": {
+      "label": "Alabama",
+      "universities": [
+        { "value": "university-of-alabama", "name": "University of Alabama" },
+        { "value": "auburn-university", "name": "Auburn University" }
+      ]
+    },
+    "louisiana": {
+      "label": "Louisiana",
+      "universities": [
+        { "value": "tulane", "name": "Tulane University" },
+        { "value": "lsu", "name": "Louisiana State University" }
+      ]
+    },
+    "arkansas": {
+      "label": "Arkansas",
+      "universities": [
+        { "value": "university-of-arkansas", "name": "University of Arkansas" }
+      ]
+    },
+    "oklahoma": {
+      "label": "Oklahoma",
+      "universities": [
+        { "value": "university-of-oklahoma", "name": "University of Oklahoma" },
+        { "value": "oklahoma-state", "name": "Oklahoma State University" }
+      ]
+    },
+    "mississippi": {
+      "label": "Mississippi",
+      "universities": [
+        { "value": "university-of-mississippi", "name": "University of Mississippi" },
+        { "value": "mississippi-state", "name": "Mississippi State University" }
+      ]
+    }
+  }
+} 
