@@ -165,39 +165,6 @@ export default function ListingsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white">
-      {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
-                <Clover className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-emerald-800">LuckyLease</h1>
-                <p className="text-xs text-emerald-600">Find your perfect sublease</p>
-              </div>
-            </Link>
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                className="md:hidden border-emerald-200 text-emerald-600"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <Filter className="w-4 h-4 mr-2" />
-                Filters
-              </Button>
-              <Button className="bg-emerald-600 hover:bg-emerald-700">
-                <Link href="/listings/create" className="flex items-center">
-                  <Plus className="h-4 w-4 mr-2" />
-                  List Your Space
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
