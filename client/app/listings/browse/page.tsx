@@ -55,10 +55,46 @@ export default function ListingsPage() {
     bedrooms: ''
   });
   const [showFilters, setShowFilters] = useState(false);
+  const [favorites, setFavorites] = useState<string[]>([]);
 
   useEffect(() => {
     fetchListings();
+    loadFavorites();
   }, []);
+
+  const loadFavorites = () => {
+    const savedFavorites = localStorage.getItem('favorites');
+    if (savedFavorites) {
+      try {
+        setFavorites(JSON.parse(savedFavorites));
+      } catch (error) {
+        console.error('Error loading favorites:', error);
+      }
+    }
+  };
+
+  const saveFavorites = (newFavorites: string[]) => {
+    localStorage.setItem('favorites', JSON.stringify(newFavorites));
+    setFavorites(newFavorites);
+  };
+
+  const toggleFavorite = (listingId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const isFavorited = favorites.includes(listingId);
+    let newFavorites: string[];
+    
+    if (isFavorited) {
+      newFavorites = favorites.filter(id => id !== listingId);
+      toast.success('Removed from favorites');
+    } else {
+      newFavorites = [...favorites, listingId];
+      toast.success('Added to favorites');
+    }
+    
+    saveFavorites(newFavorites);
+  };
 
   const fetchListings = async () => {
     try {
@@ -528,13 +564,14 @@ export default function ListingsPage() {
                         <Button
                           size="sm"
                           variant="secondary"
-                          className="absolute top-3 right-3 bg-white/90 hover:bg-white"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                          }}
+                          className={`absolute top-3 right-3 bg-white/90 hover:bg-white transition-colors ${
+                            favorites.includes(listing.id) ? 'text-red-500' : 'text-gray-600'
+                          }`}
+                          onClick={(e) => toggleFavorite(listing.id, e)}
                         >
-                          <Heart className="w-4 h-4" />
+                          <Heart className={`w-4 h-4 ${
+                            favorites.includes(listing.id) ? 'fill-current' : ''
+                          }`} />
                         </Button>
                         {index === 0 && (
                           <Badge className="absolute top-3 left-3 bg-emerald-600">
