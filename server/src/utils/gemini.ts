@@ -12,50 +12,64 @@ if (!geminiApiKey) {
 
 const genAI = new GoogleGenerativeAI(geminiApiKey);
 
-export const generateListingSummary = async (title: string, description: string, price: number, location: string): Promise<{ summary: string; tags: string[] }> => {
+export const generateCompatibilityRating = async (
+seekerProfile: {
+  budget: number;
+  durationMonths: number;
+  profileComment: string;
+  distance: number;
+},
+listing:{
+  distance: number;
+  price: number;
+  durationMonths: number;
+  listingComment: string;
+}): Promise<number> => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const prompt = `
-      Create a concise summary and relevant tags for this sublet listing:
-      
-      Title: ${title}
-      Description: ${description}
-      Price: $${price}
-      Location: ${location}
-      
-      Please provide:
-      1. A 2-3 sentence summary that highlights the key features and benefits
-      2. 5-8 relevant tags (single words or short phrases) that would help people find this listing
-      
-      Format your response as JSON:
-      {
-        "summary": "your summary here",
-        "tags": ["tag1", "tag2", "tag3"]
-      }
+      You are a rental compatibility evaluator.
+
+A person is looking for a sublet. Below is their profile and a listing.
+Rate how compatible the listing is with the person's profile **on a scale from 0.0 to 10.0**.
+
+- 10.0 = perfect match
+- 0.0 = completely incompatible
+
+Take into account:
+- Budget vs price
+- Duration fit
+- Any specific needs listed
+
+ONLY return a number with **1 decimal place** (e.g., 8.7). No explanations.
+
+Profile:{
+  "budget": ${seekerProfile.budget},
+  "durationMonths": ${seekerProfile.durationMonths},
+  "profileComment": "${seekerProfile.profileComment}",
+  }
+
+  Listing:{
+  "distance": ${listing.distance}km,
+  "price": ${listing.price},
+  "durationMonths": ${listing.durationMonths},
+  "listingComment": "${listing.listingComment}"
+  }
     `;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    const text = response.text();
+    const text = response.text().trim();
     
-    // Extract JSON from response
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const jsonMatch = text.match(/(\d+(\.\d)?)/);
     if (!jsonMatch) {
       throw new Error('Invalid response format from Gemini');
     }
     
-    const parsed = JSON.parse(jsonMatch[0]);
-    
-    return {
-      summary: parsed.summary || 'No summary available',
-      tags: parsed.tags || []
-    };
+    return parseFloat(jsonMatch[1]);
   } catch (error) {
-    console.error('Error generating listing summary:', error);
-    return {
-      summary: 'Summary not available',
-      tags: []
-    };
+    console.error('Error generating listing rating:', error);
+    return -1;
   }
 }; 
