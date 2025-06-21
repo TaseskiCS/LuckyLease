@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Filter, MapPin, DollarSign, Calendar, Heart, Plus, Star, Users, Home, Clover, ChevronDown } from 'lucide-react';
+import { Search, Filter, MapPin, DollarSign, Calendar, Heart, Plus, Star, Users, Home, Clover, ChevronDown, Bed, Bath, Mail, Phone, MessageCircle } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,14 @@ interface Listing {
   imageUrls: string[];
   summary?: string;
   tags: string[];
+  contactMethod: 'email' | 'in_app' | 'sms';
+  bedrooms: string;
+  bathrooms: string;
+  petsAllowed: boolean;
+  laundryInBuilding: boolean;
+  parkingAvailable: boolean;
+  airConditioning: boolean;
+  school?: string;
   user: {
     id: string;
     name: string;
@@ -29,6 +37,8 @@ interface Listing {
   _count: {
     likes: number;
   };
+  createdAt: string;
+  updatedAt: string;
 }
 
 export default function ListingsPage() {
@@ -52,66 +62,194 @@ export default function ListingsPage() {
 
   const fetchListings = async () => {
     try {
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (filters.minPrice) params.append('minPrice', filters.minPrice);
-      if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
-      if (filters.location) params.append('location', filters.location);
-      if (filters.startDate) params.append('startDate', filters.startDate);
-      if (filters.endDate) params.append('endDate', filters.endDate);
+      // mock data for now
+      // const params = new URLSearchParams();
+      // if (searchTerm) params.append('search', searchTerm);
+      // if (filters.minPrice) params.append('minPrice', filters.minPrice);
+      // if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
+      // if (filters.location) params.append('location', filters.location);
+      // if (filters.startDate) params.append('startDate', filters.startDate);
+      // if (filters.endDate) params.append('endDate', filters.endDate);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/listings/browse?${params}`);
-      const data = await response.json();
+      // const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/listings?${params}`);
+      // const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch listings');
-      }
+      // if (!response.ok) {
+      //   throw new Error(data.error || 'Failed to fetch listings');
+      // }
 
-      setListings(data.listings || [
-        // Mock data for demonstration
+      // setListings(data.listings || []);
+
+      // Mock data for development
+      const mockListings: Listing[] = [
         {
           id: '1',
-          title: 'Modern Studio Near University',
-          description: 'Beautiful studio apartment with all amenities',
+          title: 'Modern Studio Near University Campus',
+          description: 'Beautiful studio apartment with all amenities included. Perfect for students who want a quiet, comfortable place to study and live. Features include high-speed WiFi, modern appliances, and a great location.',
           price: 1200,
           location: '0.3 miles from campus',
           startDate: '2025-01-15',
           endDate: '2025-05-15',
-          imageUrls: [],
+          imageUrls: [
+            'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=500&h=300&fit=crop',
+            'https://images.unsplash.com/photo-1560448075-bb485b067938?w=500&h=300&fit=crop'
+          ],
           summary: 'Perfect for students, fully furnished with WiFi included',
-          tags: ['furnished', 'wifi'],
+          tags: ['furnished', 'wifi', 'modern', 'quiet'],
+          contactMethod: 'email',
+          bedrooms: '1',
+          bathrooms: '1',
+          petsAllowed: true,
+          laundryInBuilding: true,
+          parkingAvailable: true,
+          airConditioning: true,
+          school: 'University of Example',
           user: { id: '1', name: 'Jessica S.', email: 'jessica@example.com' },
-          _count: { likes: 12 }
+          _count: { likes: 12 },
+          createdAt: '2024-01-01T10:00:00Z',
+          updatedAt: '2024-01-01T10:00:00Z'
         },
         {
           id: '2',
-          title: 'Shared 2BR Near Campus',
-          description: 'Spacious shared apartment close to university',
+          title: 'Shared 2BR Apartment - Great Roommate',
+          description: 'Spacious shared apartment close to university with a great roommate. Clean and quiet environment perfect for focused studying. Common areas are well-maintained and the neighborhood is safe.',
           price: 850,
           location: '0.5 miles from campus',
           startDate: '2025-02-01',
           endDate: '2025-06-01',
-          imageUrls: [],
+          imageUrls: [
+            'https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=500&h=300&fit=crop',
+            'https://images.unsplash.com/photo-1560448075-8c4c3c4c4c4c?w=500&h=300&fit=crop'
+          ],
           summary: 'Great roommate, clean and quiet environment',
-          tags: ['shared', 'quiet'],
+          tags: ['shared', 'quiet', 'clean', 'safe'],
+          contactMethod: 'in_app',
+          bedrooms: '2',
+          bathrooms: '1',
+          petsAllowed: false,
+          laundryInBuilding: true,
+          parkingAvailable: false,
+          airConditioning: true,
+          school: 'University of Example',
           user: { id: '2', name: 'Mike R.', email: 'mike@example.com' },
-          _count: { likes: 8 }
+          _count: { likes: 8 },
+          createdAt: '2024-01-02T14:30:00Z',
+          updatedAt: '2024-01-02T14:30:00Z'
         },
         {
           id: '3',
-          title: 'Cozy Room Downtown',
-          description: 'Private room in downtown area',
+          title: 'Cozy Private Room in Downtown Area',
+          description: 'Private room in a beautiful downtown apartment. Walking distance to everything - restaurants, shops, campus, and public transportation. Great for students who want to be in the heart of the city.',
           price: 950,
           location: '0.2 miles from campus',
           startDate: '2025-01-20',
           endDate: '2025-05-20',
-          imageUrls: [],
+          imageUrls: [
+            'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=500&h=300&fit=crop',
+            'https://images.unsplash.com/photo-1560448075-bb485b067938?w=500&h=300&fit=crop'
+          ],
           summary: 'Walking distance to everything, great location',
-          tags: ['private', 'downtown'],
+          tags: ['private', 'downtown', 'walkable', 'convenient'],
+          contactMethod: 'sms',
+          bedrooms: '1',
+          bathrooms: '1',
+          petsAllowed: false,
+          laundryInBuilding: false,
+          parkingAvailable: true,
+          airConditioning: false,
+          school: 'University of Example',
           user: { id: '3', name: 'Anna L.', email: 'anna@example.com' },
-          _count: { likes: 15 }
+          _count: { likes: 15 },
+          createdAt: '2024-01-03T09:15:00Z',
+          updatedAt: '2024-01-03T09:15:00Z'
+        },
+        {
+          id: '4',
+          title: 'Luxury 1BR with Mountain Views',
+          description: 'Stunning one-bedroom apartment with breathtaking mountain views. Modern amenities, high-end finishes, and a peaceful environment. Perfect for graduate students or professionals.',
+          price: 1500,
+          location: '1.2 miles from campus',
+          startDate: '2025-03-01',
+          endDate: '2025-07-01',
+          imageUrls: [
+            'https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=500&h=300&fit=crop',
+            'https://images.unsplash.com/photo-1560448075-8c4c3c4c4c4c?w=500&h=300&fit=crop'
+          ],
+          summary: 'Luxury apartment with amazing views and modern amenities',
+          tags: ['luxury', 'views', 'modern', 'quiet'],
+          contactMethod: 'email',
+          bedrooms: '1',
+          bathrooms: '1',
+          petsAllowed: true,
+          laundryInBuilding: true,
+          parkingAvailable: true,
+          airConditioning: true,
+          school: 'University of Example',
+          user: { id: '4', name: 'David K.', email: 'david@example.com' },
+          _count: { likes: 23 },
+          createdAt: '2024-01-04T16:45:00Z',
+          updatedAt: '2024-01-04T16:45:00Z'
+        },
+        {
+          id: '5',
+          title: 'Budget-Friendly Studio for Students',
+          description: 'Affordable studio apartment perfect for budget-conscious students. Clean, functional space with all the basics you need. Great location near campus and public transportation.',
+          price: 750,
+          location: '0.8 miles from campus',
+          startDate: '2025-02-15',
+          endDate: '2025-06-15',
+          imageUrls: [
+            'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=500&h=300&fit=crop'
+          ],
+          summary: 'Affordable and clean studio perfect for students on a budget',
+          tags: ['budget', 'clean', 'functional', 'affordable'],
+          contactMethod: 'in_app',
+          bedrooms: '1',
+          bathrooms: '1',
+          petsAllowed: false,
+          laundryInBuilding: true,
+          parkingAvailable: false,
+          airConditioning: true,
+          school: 'University of Example',
+          user: { id: '5', name: 'Sarah M.', email: 'sarah@example.com' },
+          _count: { likes: 6 },
+          createdAt: '2024-01-05T11:20:00Z',
+          updatedAt: '2024-01-05T11:20:00Z'
         }
-      ]);
+      ];
+
+      // Apply filters to mock data
+      let filteredListings = mockListings;
+
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        filteredListings = filteredListings.filter(listing =>
+          listing.title.toLowerCase().includes(searchLower) ||
+          listing.description.toLowerCase().includes(searchLower) ||
+          listing.location.toLowerCase().includes(searchLower) ||
+          listing.tags.some(tag => tag.toLowerCase().includes(searchLower))
+        );
+      }
+
+      if (filters.minPrice) {
+        filteredListings = filteredListings.filter(listing => listing.price >= parseInt(filters.minPrice));
+      }
+
+      if (filters.maxPrice) {
+        filteredListings = filteredListings.filter(listing => listing.price <= parseInt(filters.maxPrice));
+      }
+
+      if (filters.location) {
+        filteredListings = filteredListings.filter(listing =>
+          listing.location.toLowerCase().includes(filters.location.toLowerCase())
+        );
+      }
+
+      if (filters.bedrooms) {
+        filteredListings = filteredListings.filter(listing => listing.bedrooms === filters.bedrooms);
+      }
+
+      setListings(filteredListings);
     } catch (error) {
       toast.error('Failed to load listings');
       console.error('Error fetching listings:', error);
@@ -263,6 +401,41 @@ export default function ListingsPage() {
                 </div>
               </div>
 
+              {/* Amenities */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Amenities</label>
+                <div className="space-y-2">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">Pets Allowed</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">Laundry in Building</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">Parking Available</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">Air Conditioning</span>
+                  </label>
+                </div>
+              </div>
+
               {/* Move-in Dates */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Move-in Period</label>
@@ -298,14 +471,22 @@ export default function ListingsPage() {
                 <h2 className="text-2xl font-bold text-gray-900">Available Listings</h2>
                 <p className="text-gray-600">{listings.length} properties found</p>
               </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">Sort by:</span>
-                <select className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
-                  <option>Most Recent</option>
-                  <option>Price: Low to High</option>
-                  <option>Price: High to Low</option>
-                  <option>Distance</option>
-                </select>
+              <div className="flex items-center space-x-4">
+                <Link href="/listings/create">
+                  <Button className="bg-emerald-600 hover:bg-emerald-700 flex items-center space-x-2">
+                    <Plus className="w-4 h-4" />
+                    <span>Create Listing</span>
+                  </Button>
+                </Link>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">Sort by:</span>
+                  <select className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                    <option>Most Recent</option>
+                    <option>Price: Low to High</option>
+                    <option>Price: High to Low</option>
+                    <option>Distance</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -400,6 +581,49 @@ export default function ListingsPage() {
                           <span>
                             {formatDate(listing.startDate)} - {formatDate(listing.endDate)}
                           </span>
+                        </div>
+
+                        {/* Property Details */}
+                        <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                          <span className="flex items-center">
+                            <Bed className="w-4 h-4 mr-1" />
+                            {listing.bedrooms} bed
+                          </span>
+                          <span className="flex items-center">
+                            <Bath className="w-4 h-4 mr-1" />
+                            {listing.bathrooms} bath
+                          </span>
+                          <span className="flex items-center">
+                            {listing.contactMethod === 'email' ? (
+                              <Mail className="w-4 h-4 mr-1" />
+                            ) : listing.contactMethod === 'sms' ? (
+                              <Phone className="w-4 h-4 mr-1" />
+                            ) : (
+                              <MessageCircle className="w-4 h-4 mr-1" />
+                            )}
+                            {listing.contactMethod}
+                          </span>
+                        </div>
+
+                        {/* Amenities */}
+                        <div className="flex flex-wrap gap-1 mb-4">
+                          {listing.petsAllowed && (
+                            <Badge variant="secondary" className="text-xs">Pets OK</Badge>
+                          )}
+                          {listing.laundryInBuilding && (
+                            <Badge variant="secondary" className="text-xs">Laundry</Badge>
+                          )}
+                          {listing.parkingAvailable && (
+                            <Badge variant="secondary" className="text-xs">Parking</Badge>
+                          )}
+                          {listing.airConditioning && (
+                            <Badge variant="secondary" className="text-xs">AC</Badge>
+                          )}
+                          {listing.tags.slice(0, 2).map((tag, tagIndex) => (
+                            <Badge key={tagIndex} variant="outline" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
                         </div>
 
                         {listing.summary && (
