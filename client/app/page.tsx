@@ -61,7 +61,7 @@ export default function HomePage() {
                 How It Works
               </Link>
               <Link
-                href="#support"
+                href="/contact"
                 className="text-gray-600 hover:text-emerald-600 transition-colors"
               >
                 Support
@@ -84,7 +84,7 @@ export default function HomePage() {
         <div className="container mx-auto text-center">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-5xl font-bold text-gray-900 mb-6">
-              Find Your <span className="text-emerald-600">Perfect</span>{" "}
+              Find Your <span className="text-emerald-600">Lucky</span>{" "}
               Sublease
             </h2>
             <p className="text-xl text-gray-600 mb-8">
@@ -129,29 +129,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-emerald-600">
-                  2,500+
-                </div>
-                <div className="text-gray-600">Active Listings</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-emerald-600">50+</div>
-                <div className="text-gray-600">Universities</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-emerald-600">
-                  15,000+
-                </div>
-                <div className="text-gray-600">Happy Students</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-emerald-600">4.9★</div>
-                <div className="text-gray-600">Average Rating</div>
-              </div>
-            </div>
+           
           </div>
         </div>
       </section>
@@ -162,7 +140,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-12">
             <div>
               <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                Featured Perfect Finds
+                Featured Lucky Finds
               </h3>
               <p className="text-gray-600">
                 Handpicked subleases near popular campuses
@@ -357,7 +335,7 @@ export default function HomePage() {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-16 px-4 bg-emerald-50">
+      <section id="how-it-works" className="py-16 px-4 bg-emerald-50 scroll-mt-20">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold text-gray-900 mb-4">
@@ -375,7 +353,7 @@ export default function HomePage() {
               </div>
               <h4 className="text-xl font-semibold mb-4">1. Search & Filter</h4>
               <p className="text-gray-600">
-                Use our smart filters to find subleases that match your budget,
+                Use our filters to find subleases that match your budget,
                 location, and preferences near your campus.
               </p>
             </div>
@@ -397,8 +375,7 @@ export default function HomePage() {
               </div>
               <h4 className="text-xl font-semibold mb-4">3. Move In Fast</h4>
               <p className="text-gray-600">
-                Complete your application, chat with landlords, and move into
-                your new place. Your perfect sublease awaits!
+               Chat with landlords, and move into your new place. Your perfect sublease awaits!
               </p>
             </div>
           </div>
@@ -413,20 +390,19 @@ export default function HomePage() {
               Ready to Find Your Perfect Sublease?
             </h3>
             <p className="text-xl text-emerald-100 mb-8">
-              Join thousands of students who've found their perfect housing
+              Join students who've found their perfect housing
               match. Your dream sublease is waiting!
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-white text-emerald-600 hover:bg-gray-100"
+                className="bg-white text-emerald-600 hover:bg-gray-200"
               >
                 <Link href="/listings/browse">Start Searching</Link>
               </Button>
               <Button
                 size="lg"
-                variant="outline"
-                className="border-white text-white hover:bg-white hover:text-emerald-600"
+                className="bg-white text-emerald-600 hover:bg-gray-200"
               >
                 <Link href="/listings/create">List Your Place</Link>
               </Button>
@@ -442,13 +418,12 @@ export default function HomePage() {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <div className="w-8 h-8 bg-emerald-600 rounded-full flex items-center justify-center">
-                  <Clover className="w-5 h-5 text-white" />
+                  <Home className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl font-bold">LuckyLease</span>
               </div>
               <p className="text-gray-400">
-                Helping students find their perfect sublease since 2025. Your
-                trusted housing solution.
+                Helping students find their perfect sublease since 2025.
               </p>
             </div>
 
@@ -465,11 +440,7 @@ export default function HomePage() {
                     Saved Searches
                   </Link>
                 </li>
-                <li>
-                  <Link href="/applications" className="hover:text-white">
-                    Application Status
-                  </Link>
-                </li>
+              
                 <li>
                   <Link href="/resources" className="hover:text-white">
                     Student Resources
@@ -491,16 +462,7 @@ export default function HomePage() {
                     Manage Listings
                   </Link>
                 </li>
-                <li>
-                  <Link href="/pricing" className="hover:text-white">
-                    Pricing Guide
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/safety" className="hover:text-white">
-                    Safety Tips
-                  </Link>
-                </li>
+            
               </ul>
             </div>
 
@@ -508,18 +470,8 @@ export default function HomePage() {
               <h5 className="font-semibold mb-4">Support</h5>
               <ul className="space-y-2 text-gray-400">
                 <li>
-                  <Link href="/help" className="hover:text-white">
-                    Help Center
-                  </Link>
-                </li>
-                <li>
                   <Link href="/contact" className="hover:text-white">
                     Contact Us
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/safety" className="hover:text-white">
-                    Trust & Safety
                   </Link>
                 </li>
                 <li>
@@ -533,7 +485,7 @@ export default function HomePage() {
 
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
             <p>
-              &copy; 2025 LuckyLease. All rights reserved. Find your perfect
+              &copy; 2024 LuckyLease. All rights reserved. Find your lucky
               match! 🍀
             </p>
           </div>
