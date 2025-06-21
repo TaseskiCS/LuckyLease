@@ -155,4 +155,4 @@ RoomRelay/
 
 ## 🆘 Support
 
-For support, email support@roomrelay.com or create an issue in the repository. # SPURHACKS25
+For support, email LuckyLease2025@gmail.com or create an issue in the repository. # SPURHACKS25
