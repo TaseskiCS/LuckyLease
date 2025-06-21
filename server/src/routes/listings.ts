@@ -1,10 +1,11 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { body, validationResult } from 'express-validator';
-import { prisma } from '../utils/prisma';
+import { supabase } from '../utils/supabase';
 import { authenticateToken } from '../middleware/auth';
 import { uploadImage, deleteImage } from '../utils/supabase';
 import { generateListingSummary } from '../utils/gemini';
+import cuid from 'cuid';
 
 const router = Router();
 
@@ -50,75 +51,85 @@ router.get('/', async (req: Request, res: Response) => {
 
     const pageNum = parseInt(page as string);
     const limitNum = parseInt(limit as string);
-    const skip = (pageNum - 1) * limitNum;
+    const offset = (pageNum - 1) * limitNum;
 
-    // Build where clause
-    const where: any = {};
+    // Build query
+    let query = supabase
+      .from('listings')
+      .select(`
+        *,
+        user:users(id, name, email),
+        likes:likes(count)
+      `)
+      .order('createdAt', { ascending: false })
+      .range(offset, offset + limitNum - 1);
 
+    // Apply filters
     if (location) {
-      where.location = {
-        contains: location as string,
-        mode: 'insensitive'
-      };
+      query = query.ilike('location', `%${location}%`);
     }
 
-    if (minPrice || maxPrice) {
-      where.price = {};
-      if (minPrice) where.price.gte = parseFloat(minPrice as string);
-      if (maxPrice) where.price.lte = parseFloat(maxPrice as string);
+    if (minPrice) {
+      query = query.gte('price', parseFloat(minPrice as string));
+    }
+
+    if (maxPrice) {
+      query = query.lte('price', parseFloat(maxPrice as string));
     }
 
     if (startDate) {
-      where.startDate = {
-        gte: new Date(startDate as string)
-      };
+      query = query.gte('startDate', startDate as string);
     }
 
     if (endDate) {
-      where.endDate = {
-        lte: new Date(endDate as string)
-      };
+      query = query.lte('endDate', endDate as string);
     }
 
     if (search) {
-      where.OR = [
-        { title: { contains: search as string, mode: 'insensitive' } },
-        { description: { contains: search as string, mode: 'insensitive' } },
-        { location: { contains: search as string, mode: 'insensitive' } }
-      ];
+      query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%,location.ilike.%${search}%`);
     }
 
-    const [listings, total] = await Promise.all([
-      prisma.listing.findMany({
-        where,
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          },
-          _count: {
-            select: {
-              likes: true
-            }
-          }
-        },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limitNum
-      }),
-      prisma.listing.count({ where })
-    ]);
+    const { data: listings, error, count } = await query;
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    // Get total count for pagination
+    let countQuery = supabase
+      .from('listings')
+      .select('*', { count: 'exact', head: true });
+
+    // Apply same filters to count query
+    if (location) {
+      countQuery = countQuery.ilike('location', `%${location}%`);
+    }
+    if (minPrice) {
+      countQuery = countQuery.gte('price', parseFloat(minPrice as string));
+    }
+    if (maxPrice) {
+      countQuery = countQuery.lte('price', parseFloat(maxPrice as string));
+    }
+    if (startDate) {
+      countQuery = countQuery.gte('startDate', startDate as string);
+    }
+    if (endDate) {
+      countQuery = countQuery.lte('endDate', endDate as string);
+    }
+    if (search) {
+      countQuery = countQuery.or(`title.ilike.%${search}%,description.ilike.%${search}%,location.ilike.%${search}%`);
+    }
+
+    const { count: total } = await countQuery;
 
     res.json({
-      listings,
+      listings: listings || [],
       pagination: {
         page: pageNum,
         limit: limitNum,
-        total,
-        pages: Math.ceil(total / limitNum)
+        total: total || 0,
+        pages: Math.ceil((total || 0) / limitNum)
       }
     });
   } catch (error) {
@@ -132,25 +143,17 @@ router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const listing = await prisma.listing.findUnique({
-      where: { id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        },
-        _count: {
-          select: {
-            likes: true
-          }
-        }
-      }
-    });
+    const { data: listing, error } = await supabase
+      .from('listings')
+      .select(`
+        *,
+        user:users(id, name, email),
+        likes:likes(count)
+      `)
+      .eq('id', id)
+      .single();
 
-    if (!listing) {
+    if (error || !listing) {
       return res.status(404).json({ error: 'Listing not found' });
     }
 
@@ -181,7 +184,7 @@ router.post('/', authenticateToken, upload.array('images', 10), validateListing,
 
     // Upload images
     const imageUrls: string[] = [];
-    if (req.files && req.files.length > 0) {
+    if (req.files && Array.isArray(req.files) && req.files.length > 0) {
       for (let i = 0; i < req.files.length; i++) {
         const file = req.files[i] as Express.Multer.File;
         const fileName = `${Date.now()}-${i}-${file.originalname}`;
@@ -194,8 +197,10 @@ router.post('/', authenticateToken, upload.array('images', 10), validateListing,
     const aiData = await generateListingSummary(title, description, parseFloat(price), location);
 
     // Create listing
-    const listing = await prisma.listing.create({
-      data: {
+    const { data: listingData, error } = await supabase
+      .from('listings')
+      .insert({
+        id: cuid(),
         userId: req.user!.userId,
         title,
         description,
@@ -203,25 +208,26 @@ router.post('/', authenticateToken, upload.array('images', 10), validateListing,
         location,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
-        imageUrls,
-        contactMethod,
+        imageUrls: imageUrls,
+        contactMethod: contactMethod,
         summary: aiData.summary,
-        tags: aiData.tags
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
-    });
+        tags: aiData.tags,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .select(`
+        *,
+        user:users(id, name, email)
+      `);
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return res.status(500).json({ error: 'Database error' });
+    }
 
     res.status(201).json({
       message: 'Listing created successfully',
-      listing
+      listing: listingData[0]
     });
   } catch (error) {
     console.error('Create listing error:', error);
@@ -249,9 +255,11 @@ router.put('/:id', authenticateToken, upload.array('images', 10), validateListin
     } = req.body;
 
     // Check if listing exists and user owns it
-    const existingListing = await prisma.listing.findUnique({
-      where: { id }
-    });
+    const { data: existingListing, error } = await supabase
+      .from('listings')
+      .select('*')
+      .eq('id', id)
+      .single();
 
     if (!existingListing) {
       return res.status(404).json({ error: 'Listing not found' });
@@ -263,7 +271,7 @@ router.put('/:id', authenticateToken, upload.array('images', 10), validateListin
 
     // Handle image uploads
     let imageUrls = existingListing.imageUrls;
-    if (req.files && req.files.length > 0) {
+    if (req.files && Array.isArray(req.files) && req.files.length > 0) {
       const newImageUrls: string[] = [];
       for (let i = 0; i < req.files.length; i++) {
         const file = req.files[i] as Express.Multer.File;
@@ -278,34 +286,35 @@ router.put('/:id', authenticateToken, upload.array('images', 10), validateListin
     const aiData = await generateListingSummary(title, description, parseFloat(price), location);
 
     // Update listing
-    const listing = await prisma.listing.update({
-      where: { id },
-      data: {
+    const { data: updatedListing, error: updateError } = await supabase
+      .from('listings')
+      .update({
         title,
         description,
         price: parseFloat(price),
         location,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
-        imageUrls,
-        contactMethod,
+        imageUrls: imageUrls,
+        contactMethod: contactMethod,
         summary: aiData.summary,
-        tags: aiData.tags
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
-    });
+        tags: aiData.tags,
+        updatedAt: new Date()
+      })
+      .eq('id', id)
+      .select(`
+        *,
+        user:users(id, name, email)
+      `);
+
+    if (updateError) {
+      console.error('Supabase error:', updateError);
+      return res.status(500).json({ error: 'Database error' });
+    }
 
     res.json({
       message: 'Listing updated successfully',
-      listing
+      listing: updatedListing[0]
     });
   } catch (error) {
     console.error('Update listing error:', error);
@@ -319,20 +328,22 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
     const { id } = req.params;
 
     // Check if listing exists and user owns it
-    const listing = await prisma.listing.findUnique({
-      where: { id }
-    });
+    const { data: existingListing, error } = await supabase
+      .from('listings')
+      .select('*')
+      .eq('id', id)
+      .single();
 
-    if (!listing) {
+    if (!existingListing) {
       return res.status(404).json({ error: 'Listing not found' });
     }
 
-    if (listing.userId !== req.user!.userId) {
+    if (existingListing.userId !== req.user!.userId) {
       return res.status(403).json({ error: 'Not authorized to delete this listing' });
     }
 
     // Delete images from storage
-    for (const imageUrl of listing.imageUrls) {
+    for (const imageUrl of existingListing.imageUrls) {
       try {
         const fileName = imageUrl.split('/').pop();
         if (fileName) {
@@ -344,9 +355,15 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
     }
 
     // Delete listing
-    await prisma.listing.delete({
-      where: { id }
-    });
+    const { error: deleteError } = await supabase
+      .from('listings')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) {
+      console.error('Supabase error:', deleteError);
+      return res.status(500).json({ error: 'Database error' });
+    }
 
     res.json({ message: 'Listing deleted successfully' });
   } catch (error) {
@@ -358,19 +375,21 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
 // Get user's listings
 router.get('/user/me', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const listings = await prisma.listing.findMany({
-      where: { userId: req.user!.userId },
-      include: {
-        _count: {
-          select: {
-            likes: true,
-            messages: true,
-            offers: true
-          }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+    const { data: listings, error } = await supabase
+      .from('listings')
+      .select(`
+        *,
+        likes:likes(count),
+        messages:messages(count),
+        offers:offers(count)
+      `)
+      .eq('userId', req.user!.userId)
+      .order('createdAt', { ascending: false });
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return res.status(500).json({ error: 'Database error' });
+    }
 
     res.json({ listings });
   } catch (error) {

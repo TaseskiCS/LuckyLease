@@ -1,9 +1,10 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { body, validationResult } from 'express-validator';
-import { prisma } from '../utils/prisma';
+import { supabase } from '../utils/supabase';
 import { generateToken } from '../utils/jwt';
 import { authenticateToken } from '../middleware/auth';
+import cuid from 'cuid';
 
 const router = Router();
 
@@ -29,10 +30,19 @@ router.post('/signup', validateSignup, async (req: Request, res: Response) => {
 
     const { email, password, name } = req.body;
 
+    console.log('Attempting to create user:', { email, name });
+
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email }
-    });
+    const { data: existingUser, error: findError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', email)
+      .single();
+
+    if (findError && findError.code !== 'PGRST116') { // PGRST116 is "not found" error
+      console.error('Error checking existing user:', findError);
+      return res.status(500).json({ error: 'Database error' });
+    }
 
     if (existingUser) {
       return res.status(400).json({ error: 'User already exists' });
@@ -42,16 +52,35 @@ router.post('/signup', validateSignup, async (req: Request, res: Response) => {
     const saltRounds = 12;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
+    console.log('Creating user with hashed password');
+
     // Create user
-    const user = await prisma.user.create({
-      data: {
+    const { data: user, error: createError } = await supabase
+      .from('users')
+      .insert({
+        id: cuid(),
         email,
-        passwordHash,
+        passwordHash: passwordHash,
         name,
         isRenter: true,
-        isSeller: false
-      }
-    });
+        isSeller: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .select()
+      .single();
+
+    if (createError) {
+      console.error('Supabase error creating user:', createError);
+      return res.status(500).json({ error: 'Database error: ' + createError.message });
+    }
+
+    if (!user) {
+      console.error('No user returned from creation');
+      return res.status(500).json({ error: 'Failed to create user' });
+    }
+
+    console.log('User created successfully:', user.id);
 
     // Generate token
     const token = generateToken({
@@ -87,11 +116,13 @@ router.post('/login', validateLogin, async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
     // Find user
-    const user = await prisma.user.findUnique({
-      where: { email }
-    });
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
 
-    if (!user) {
+    if (error || !user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -127,23 +158,26 @@ router.post('/login', validateLogin, async (req: Request, res: Response) => {
 // Get current user profile
 router.get('/profile', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.user!.userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        isRenter: true,
-        isSeller: true,
-        createdAt: true
-      }
-    });
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('id, email, name, isRenter, isSeller, createdAt')
+      .eq('id', req.user!.userId)
+      .single();
 
-    if (!user) {
+    if (error || !user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    res.json({ user });
+    res.json({ 
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        isRenter: user.isRenter,
+        isSeller: user.isSeller,
+        createdAt: user.createdAt
+      }
+    });
   } catch (error) {
     console.error('Profile error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -155,26 +189,33 @@ router.put('/profile', authenticateToken, async (req: Request, res: Response) =>
   try {
     const { name, isRenter, isSeller } = req.body;
 
-    const user = await prisma.user.update({
-      where: { id: req.user!.userId },
-      data: {
-        name: name || undefined,
-        isRenter: isRenter !== undefined ? isRenter : undefined,
-        isSeller: isSeller !== undefined ? isSeller : undefined
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        isRenter: true,
-        isSeller: true,
-        createdAt: true
-      }
-    });
+    const updateData: any = {};
+    if (name !== undefined) updateData.name = name;
+    if (isRenter !== undefined) updateData.isRenter = isRenter;
+    if (isSeller !== undefined) updateData.isSeller = isSeller;
+
+    const { data: user, error } = await supabase
+      .from('users')
+      .update(updateData)
+      .eq('id', req.user!.userId)
+      .select('id, email, name, isRenter, isSeller, createdAt')
+      .single();
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return res.status(500).json({ error: 'Database error' });
+    }
 
     res.json({ 
       message: 'Profile updated successfully',
-      user 
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        isRenter: user.isRenter,
+        isSeller: user.isSeller,
+        createdAt: user.createdAt
+      }
     });
   } catch (error) {
     console.error('Profile update error:', error);
