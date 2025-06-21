@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, User, Clover, ArrowLeft } from "lucide-react";
@@ -20,6 +20,14 @@ export default function SignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      router.push("/listings/browse");
+    }
+  }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -63,14 +71,13 @@ export default function SignupPage() {
 
       if (!response.ok) {
         throw new Error(data.error || "Signup failed");
-      }
-
-      // Store token in localStorage (in production, use httpOnly cookies)
+      } // Store token in localStorage (in production, use httpOnly cookies)
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
       toast.success("Account created successfully!");
-      router.push("/listings");
+      // Force a page reload to update the header component
+      window.location.href = "/listings";
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Signup failed");
     } finally {
