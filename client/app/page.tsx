@@ -363,7 +363,7 @@ export default function HomePage() {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <div className="w-8 h-8 bg-emerald-600 rounded-full flex items-center justify-center">
-                  <Home className="w-5 h-5 text-white" />
+                  <Clover className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl font-bold">LuckyLease</span>
               </div>
