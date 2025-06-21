@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { InteractiveMap } from "@/components/ui/interactive-map";
 import {
   Search,
   MapPin,
@@ -22,8 +23,13 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white">
-      {" "}
+    <div
+      className="min-h-screen"
+      style={{
+        background:
+          "linear-gradient(180deg, #d1fae5 0%, #ecfdf5 20%, #ffffff 40%, #ffffff 50%, #ecfdf5 60%, #d1fae5 70%)",
+      }}
+    >
       {/* Hero Section */}
       <section className="relative py-32 px-4 min-h-[85vh] flex items-center overflow-hidden">
         {/* Subtle floating background elements */}
@@ -84,9 +90,9 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </section>
+      </section>{" "}
       {/* Featured Listings */}
-      <section className="py-16 px-4 bg-white">
+      <section className="py-16 px-4">
         <div className="container mx-auto">
           <div className="flex items-center justify-between mb-12">
             <div>
@@ -287,12 +293,25 @@ export default function HomePage() {
             </Button>
           </div>
         </div>
-      </section>
+      </section>{" "}
+      {/* Interactive Map Section */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">
+              Explore Listings on the Map
+            </h3>{" "}
+          </div>{" "}
+          <div className="max-w-6xl mx-auto">
+            <InteractiveMap
+              height="450px"
+              className="rounded-xl overflow-hidden shadow-2xl"
+            />
+          </div>
+        </div>
+      </section>{" "}
       {/* How It Works */}
-      <section
-        id="how-it-works"
-        className="py-16 px-4 bg-emerald-50 scroll-mt-20"
-      >
+      <section id="how-it-works" className="py-16 px-4 scroll-mt-20">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold text-gray-900 mb-4">
@@ -321,8 +340,8 @@ export default function HomePage() {
               </div>
               <h4 className="text-xl font-semibold mb-4">2. Connect Safely</h4>
               <p className="text-gray-600">
-                All users are verified students. Chat securely with subletters
-                and schedule virtual or in-person tours.
+                All users are verified. Chat securely with subletters and
+                schedule virtual or in-person tours.
               </p>
             </div>
 
@@ -338,18 +357,18 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </section>
+      </section>{" "}
       {/* CTA Section */}
-      <section className="py-16 px-4 bg-emerald-600">
+      <section className="py-8 px-4 bg-emerald-600">
         <div className="container mx-auto text-center">
           <div className="max-w-3xl mx-auto">
-            <h3 className="text-3xl font-bold text-white mb-4">
+            <h3 className="text-2xl font-bold text-white mb-3">
               Ready to Find Your Perfect Sublease?
             </h3>
-            <p className="text-xl text-emerald-100 mb-8">
+            <p className="text-lg text-emerald-100 mb-6">
               Join students who've found their perfect housing match. Your dream
               sublease is waiting!
-            </p>{" "}
+            </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
@@ -440,7 +459,7 @@ export default function HomePage() {
 
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
             <p>
-              &copy; 2024 LuckyLease. All rights reserved. Find your lucky
+              &copy; 2025 LuckyLease. All rights reserved. Find your lucky
               match! 🍀
             </p>
           </div>
