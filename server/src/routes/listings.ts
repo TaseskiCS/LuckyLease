@@ -4,7 +4,6 @@ import { body, validationResult } from 'express-validator';
 import { supabase } from '../utils/supabase';
 import { authenticateToken } from '../middleware/auth';
 import { uploadImage, deleteImage } from '../utils/supabase';
-import { generateListingSummary } from '../utils/gemini';
 import cuid from 'cuid';
 
 const router = Router();
@@ -32,7 +31,14 @@ const validateListing = [
   body('location').trim().isLength({ min: 2, max: 100 }),
   body('startDate').isISO8601(),
   body('endDate').isISO8601(),
-  body('contactMethod').isIn(['email', 'in_app']),
+  body('contactMethod').isIn(['email', 'in_app', 'sms']),
+  body('bedrooms').isString(),
+  body('bathrooms').isString(),
+  body('school').optional().isString(),
+  body('petsAllowed').isBoolean(),
+  body('laundryInBuilding').isBoolean(),
+  body('parkingAvailable').isBoolean(),
+  body('airConditioning').isBoolean(),
 ];
 
 // Get all listings with filters
@@ -179,22 +185,35 @@ router.post('/', authenticateToken, upload.array('images', 10), validateListing,
       location,
       startDate,
       endDate,
-      contactMethod
+      contactMethod,
+      bedrooms,
+      bathrooms,
+      school,
+      petsAllowed,
+      laundryInBuilding,
+      parkingAvailable,
+      airConditioning
     } = req.body;
 
     // Upload images
     const imageUrls: string[] = [];
+    console.log('Files received:', req.files?.length || 0);
     if (req.files && Array.isArray(req.files) && req.files.length > 0) {
       for (let i = 0; i < req.files.length; i++) {
         const file = req.files[i] as Express.Multer.File;
+        console.log('Processing file:', file.originalname, file.size);
         const fileName = `${Date.now()}-${i}-${file.originalname}`;
-        const imageUrl = await uploadImage(file.buffer, fileName);
-        imageUrls.push(imageUrl);
+        try {
+          const imageUrl = await uploadImage(file.buffer, fileName);
+          console.log('Uploaded image URL:', imageUrl);
+          imageUrls.push(imageUrl);
+        } catch (uploadError) {
+          console.error('Failed to upload image:', uploadError);
+          throw uploadError;
+        }
       }
     }
-
-    // Generate AI summary
-    const aiData = await generateListingSummary(title, description, parseFloat(price), location);
+    console.log('Final imageUrls:', imageUrls);
 
     // Create listing
     const { data: listingData, error } = await supabase
@@ -210,8 +229,15 @@ router.post('/', authenticateToken, upload.array('images', 10), validateListing,
         endDate: new Date(endDate),
         imageUrls: imageUrls,
         contactMethod: contactMethod,
-        summary: aiData.summary,
-        tags: aiData.tags,
+        bedrooms,
+        bathrooms,
+        school: school || null,
+        petsAllowed: petsAllowed === 'true',
+        laundryInBuilding: laundryInBuilding === 'true',
+        parkingAvailable: parkingAvailable === 'true',
+        airConditioning: airConditioning === 'true',
+        summary: null, // Will be generated later if needed
+        tags: [], // Will be generated later if needed
         createdAt: new Date(),
         updatedAt: new Date()
       })
@@ -251,7 +277,14 @@ router.put('/:id', authenticateToken, upload.array('images', 10), validateListin
       location,
       startDate,
       endDate,
-      contactMethod
+      contactMethod,
+      bedrooms,
+      bathrooms,
+      school,
+      petsAllowed,
+      laundryInBuilding,
+      parkingAvailable,
+      airConditioning
     } = req.body;
 
     // Check if listing exists and user owns it
@@ -282,9 +315,6 @@ router.put('/:id', authenticateToken, upload.array('images', 10), validateListin
       imageUrls = newImageUrls;
     }
 
-    // Generate new AI summary
-    const aiData = await generateListingSummary(title, description, parseFloat(price), location);
-
     // Update listing
     const { data: updatedListing, error: updateError } = await supabase
       .from('listings')
@@ -297,8 +327,13 @@ router.put('/:id', authenticateToken, upload.array('images', 10), validateListin
         endDate: new Date(endDate),
         imageUrls: imageUrls,
         contactMethod: contactMethod,
-        summary: aiData.summary,
-        tags: aiData.tags,
+        bedrooms,
+        bathrooms,
+        school: school || null,
+        petsAllowed: petsAllowed === 'true',
+        laundryInBuilding: laundryInBuilding === 'true',
+        parkingAvailable: parkingAvailable === 'true',
+        airConditioning: airConditioning === 'true',
         updatedAt: new Date()
       })
       .eq('id', id)
@@ -398,4 +433,4 @@ router.get('/user/me', authenticateToken, async (req: Request, res: Response) =>
   }
 });
 
-export default router; 
+export default router;
