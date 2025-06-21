@@ -30,7 +30,7 @@ router.post('/', async (req: Request, res: Response) => {
   const mailOptions = {
     from:    process.env.EMAIL_USER,   
     replyTo: email,                    
-    to:      "antoniotaseski.bus@hotmail.com",     
+    to:      process.env.EMAIL_TO,     
     subject: `New contact form message from ${name}`,
     text:    `You got a new message:\n\nName: ${name}\nEmail: ${email}\n\n${message}`,
     html:    `
