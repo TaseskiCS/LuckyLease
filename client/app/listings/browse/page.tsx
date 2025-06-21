@@ -472,12 +472,7 @@ export default function ListingsPage() {
                 <p className="text-gray-600">{listings.length} properties found</p>
               </div>
               <div className="flex items-center space-x-4">
-                <Link href="/listings/create">
-                  <Button className="bg-emerald-600 hover:bg-emerald-700 flex items-center space-x-2">
-                    <Plus className="w-4 h-4" />
-                    <span>Create Listing</span>
-                  </Button>
-                </Link>
+               
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-gray-600">Sort by:</span>
                   <select className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
@@ -508,7 +503,7 @@ export default function ListingsPage() {
             ) : (
               <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {listings.map((listing, index) => (
-                  <Link key={listing.id} href={`/listings/${listing.id}`}>
+                  <Link key={listing.id} href={`/listings/browse/${listing.id}`}>
                     <Card className="overflow-hidden hover:shadow-xl transition-all duration-200 cursor-pointer group">
                       <div className="relative">
                         {listing.imageUrls.length > 0 ? (
