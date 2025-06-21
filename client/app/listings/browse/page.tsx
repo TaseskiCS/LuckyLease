@@ -62,194 +62,22 @@ export default function ListingsPage() {
 
   const fetchListings = async () => {
     try {
-      // mock data for now
-      // const params = new URLSearchParams();
-      // if (searchTerm) params.append('search', searchTerm);
-      // if (filters.minPrice) params.append('minPrice', filters.minPrice);
-      // if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
-      // if (filters.location) params.append('location', filters.location);
-      // if (filters.startDate) params.append('startDate', filters.startDate);
-      // if (filters.endDate) params.append('endDate', filters.endDate);
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (filters.minPrice) params.append('minPrice', filters.minPrice);
+      if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
+      if (filters.location) params.append('location', filters.location);
+      if (filters.startDate) params.append('startDate', filters.startDate);
+      if (filters.endDate) params.append('endDate', filters.endDate);
 
-      // const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/listings?${params}`);
-      // const data = await response.json();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/listings?${params}`);
+      const data = await response.json();
 
-      // if (!response.ok) {
-      //   throw new Error(data.error || 'Failed to fetch listings');
-      // }
-
-      // setListings(data.listings || []);
-
-      // Mock data for development
-      const mockListings: Listing[] = [
-        {
-          id: '1',
-          title: 'Modern Studio Near University Campus',
-          description: 'Beautiful studio apartment with all amenities included. Perfect for students who want a quiet, comfortable place to study and live. Features include high-speed WiFi, modern appliances, and a great location.',
-          price: 1200,
-          location: '0.3 miles from campus',
-          startDate: '2025-01-15',
-          endDate: '2025-05-15',
-          imageUrls: [
-            'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=500&h=300&fit=crop',
-            'https://images.unsplash.com/photo-1560448075-bb485b067938?w=500&h=300&fit=crop'
-          ],
-          summary: 'Perfect for students, fully furnished with WiFi included',
-          tags: ['furnished', 'wifi', 'modern', 'quiet'],
-          contactMethod: 'email',
-          bedrooms: '1',
-          bathrooms: '1',
-          petsAllowed: true,
-          laundryInBuilding: true,
-          parkingAvailable: true,
-          airConditioning: true,
-          school: 'University of Example',
-          user: { id: '1', name: 'Jessica S.', email: 'jessica@example.com' },
-          _count: { likes: 12 },
-          createdAt: '2024-01-01T10:00:00Z',
-          updatedAt: '2024-01-01T10:00:00Z'
-        },
-        {
-          id: '2',
-          title: 'Shared 2BR Apartment - Great Roommate',
-          description: 'Spacious shared apartment close to university with a great roommate. Clean and quiet environment perfect for focused studying. Common areas are well-maintained and the neighborhood is safe.',
-          price: 850,
-          location: '0.5 miles from campus',
-          startDate: '2025-02-01',
-          endDate: '2025-06-01',
-          imageUrls: [
-            'https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=500&h=300&fit=crop',
-            'https://images.unsplash.com/photo-1560448075-8c4c3c4c4c4c?w=500&h=300&fit=crop'
-          ],
-          summary: 'Great roommate, clean and quiet environment',
-          tags: ['shared', 'quiet', 'clean', 'safe'],
-          contactMethod: 'in_app',
-          bedrooms: '2',
-          bathrooms: '1',
-          petsAllowed: false,
-          laundryInBuilding: true,
-          parkingAvailable: false,
-          airConditioning: true,
-          school: 'University of Example',
-          user: { id: '2', name: 'Mike R.', email: 'mike@example.com' },
-          _count: { likes: 8 },
-          createdAt: '2024-01-02T14:30:00Z',
-          updatedAt: '2024-01-02T14:30:00Z'
-        },
-        {
-          id: '3',
-          title: 'Cozy Private Room in Downtown Area',
-          description: 'Private room in a beautiful downtown apartment. Walking distance to everything - restaurants, shops, campus, and public transportation. Great for students who want to be in the heart of the city.',
-          price: 950,
-          location: '0.2 miles from campus',
-          startDate: '2025-01-20',
-          endDate: '2025-05-20',
-          imageUrls: [
-            'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=500&h=300&fit=crop',
-            'https://images.unsplash.com/photo-1560448075-bb485b067938?w=500&h=300&fit=crop'
-          ],
-          summary: 'Walking distance to everything, great location',
-          tags: ['private', 'downtown', 'walkable', 'convenient'],
-          contactMethod: 'sms',
-          bedrooms: '1',
-          bathrooms: '1',
-          petsAllowed: false,
-          laundryInBuilding: false,
-          parkingAvailable: true,
-          airConditioning: false,
-          school: 'University of Example',
-          user: { id: '3', name: 'Anna L.', email: 'anna@example.com' },
-          _count: { likes: 15 },
-          createdAt: '2024-01-03T09:15:00Z',
-          updatedAt: '2024-01-03T09:15:00Z'
-        },
-        {
-          id: '4',
-          title: 'Luxury 1BR with Mountain Views',
-          description: 'Stunning one-bedroom apartment with breathtaking mountain views. Modern amenities, high-end finishes, and a peaceful environment. Perfect for graduate students or professionals.',
-          price: 1500,
-          location: '1.2 miles from campus',
-          startDate: '2025-03-01',
-          endDate: '2025-07-01',
-          imageUrls: [
-            'https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=500&h=300&fit=crop',
-            'https://images.unsplash.com/photo-1560448075-8c4c3c4c4c4c?w=500&h=300&fit=crop'
-          ],
-          summary: 'Luxury apartment with amazing views and modern amenities',
-          tags: ['luxury', 'views', 'modern', 'quiet'],
-          contactMethod: 'email',
-          bedrooms: '1',
-          bathrooms: '1',
-          petsAllowed: true,
-          laundryInBuilding: true,
-          parkingAvailable: true,
-          airConditioning: true,
-          school: 'University of Example',
-          user: { id: '4', name: 'David K.', email: 'david@example.com' },
-          _count: { likes: 23 },
-          createdAt: '2024-01-04T16:45:00Z',
-          updatedAt: '2024-01-04T16:45:00Z'
-        },
-        {
-          id: '5',
-          title: 'Budget-Friendly Studio for Students',
-          description: 'Affordable studio apartment perfect for budget-conscious students. Clean, functional space with all the basics you need. Great location near campus and public transportation.',
-          price: 750,
-          location: '0.8 miles from campus',
-          startDate: '2025-02-15',
-          endDate: '2025-06-15',
-          imageUrls: [
-            'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=500&h=300&fit=crop'
-          ],
-          summary: 'Affordable and clean studio perfect for students on a budget',
-          tags: ['budget', 'clean', 'functional', 'affordable'],
-          contactMethod: 'in_app',
-          bedrooms: '1',
-          bathrooms: '1',
-          petsAllowed: false,
-          laundryInBuilding: true,
-          parkingAvailable: false,
-          airConditioning: true,
-          school: 'University of Example',
-          user: { id: '5', name: 'Sarah M.', email: 'sarah@example.com' },
-          _count: { likes: 6 },
-          createdAt: '2024-01-05T11:20:00Z',
-          updatedAt: '2024-01-05T11:20:00Z'
-        }
-      ];
-
-      // Apply filters to mock data
-      let filteredListings = mockListings;
-
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        filteredListings = filteredListings.filter(listing =>
-          listing.title.toLowerCase().includes(searchLower) ||
-          listing.description.toLowerCase().includes(searchLower) ||
-          listing.location.toLowerCase().includes(searchLower) ||
-          listing.tags.some(tag => tag.toLowerCase().includes(searchLower))
-        );
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch listings');
       }
 
-      if (filters.minPrice) {
-        filteredListings = filteredListings.filter(listing => listing.price >= parseInt(filters.minPrice));
-      }
-
-      if (filters.maxPrice) {
-        filteredListings = filteredListings.filter(listing => listing.price <= parseInt(filters.maxPrice));
-      }
-
-      if (filters.location) {
-        filteredListings = filteredListings.filter(listing =>
-          listing.location.toLowerCase().includes(filters.location.toLowerCase())
-        );
-      }
-
-      if (filters.bedrooms) {
-        filteredListings = filteredListings.filter(listing => listing.bedrooms === filters.bedrooms);
-      }
-
-      setListings(filteredListings);
+      setListings(data.listings || []);
     } catch (error) {
       toast.error('Failed to load listings');
       console.error('Error fetching listings:', error);
@@ -472,7 +300,12 @@ export default function ListingsPage() {
                 <p className="text-gray-600">{listings.length} properties found</p>
               </div>
               <div className="flex items-center space-x-4">
-               
+                <Link href="/listings/create">
+                  <Button className="bg-emerald-600 hover:bg-emerald-700 flex items-center space-x-2">
+                    <Plus className="w-4 h-4" />
+                    <span>Create Listing</span>
+                  </Button>
+                </Link>
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-gray-600">Sort by:</span>
                   <select className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
@@ -506,11 +339,15 @@ export default function ListingsPage() {
                   <Link key={listing.id} href={`/listings/browse/${listing.id}`}>
                     <Card className="overflow-hidden hover:shadow-xl transition-all duration-200 cursor-pointer group">
                       <div className="relative">
-                        {listing.imageUrls.length > 0 ? (
+                        {listing.imageUrls && listing.imageUrls.length > 0 ? (
                           <img
                             src={listing.imageUrls[0]}
                             alt={listing.title}
                             className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-200"
+                            onError={(e) => {
+                              console.log('Image failed to load:', listing.imageUrls[0]);
+                              e.currentTarget.style.display = 'none';
+                            }}
                           />
                         ) : (
                           <div className={`w-full h-48 flex items-center justify-center ${
@@ -536,21 +373,6 @@ export default function ListingsPage() {
                         >
                           <Heart className="w-4 h-4" />
                         </Button>
-                        {index === 0 && (
-                          <Badge className="absolute top-3 left-3 bg-emerald-600">
-                            Featured
-                          </Badge>
-                        )}
-                        {index === 1 && (
-                          <Badge className="absolute top-3 left-3 bg-orange-500">
-                            Hot Deal
-                          </Badge>
-                        )}
-                        {index === 2 && (
-                          <Badge className="absolute top-3 left-3 bg-blue-500">
-                            New
-                          </Badge>
-                        )}
                       </div>
                       <CardContent className="p-6">
                         <div className="flex items-start justify-between mb-3">
@@ -614,7 +436,7 @@ export default function ListingsPage() {
                           {listing.airConditioning && (
                             <Badge variant="secondary" className="text-xs">AC</Badge>
                           )}
-                          {listing.tags.slice(0, 2).map((tag, tagIndex) => (
+                          {listing.tags && listing.tags.slice(0, 2).map((tag, tagIndex) => (
                             <Badge key={tagIndex} variant="outline" className="text-xs">
                               {tag}
                             </Badge>
@@ -637,15 +459,9 @@ export default function ListingsPage() {
                             <span className="text-sm text-gray-600">{listing.user.name}</span>
                           </div>
                           <div className="flex items-center space-x-3">
-                            <div className="flex items-center">
-                              <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                              <span className="text-sm text-gray-600 ml-1">
-                                {4.5 + Math.random() * 0.5}
-                              </span>
-                            </div>
                             <div className="flex items-center text-gray-500">
                               <Heart className="h-4 w-4 mr-1" />
-                              <span className="text-sm">{listing._count.likes}</span>
+                              <span className="text-sm">{listing._count?.likes || 0}</span>
                             </div>
                           </div>
                         </div>

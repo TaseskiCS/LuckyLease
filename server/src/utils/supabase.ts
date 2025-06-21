@@ -16,22 +16,43 @@ export const supabase = createClient(supabaseUrl, supabaseKey);
 export const uploadImage = async (file: Buffer, fileName: string): Promise<string> => {
   const bucket = process.env.SUPABASE_BUCKET || 'listings';
   
-  const { data, error } = await supabase.storage
-    .from(bucket)
-    .upload(fileName, file, {
-      contentType: 'image/jpeg',
-      upsert: false
-    });
+  try {
+    // Check if bucket exists, create if it doesn't
+    const { data: buckets } = await supabase.storage.listBuckets();
+    const bucketExists = buckets?.some(b => b.name === bucket);
+    
+    if (!bucketExists) {
+      const { error: createError } = await supabase.storage.createBucket(bucket, {
+        public: true
+      });
+      if (createError) {
+        console.error('Error creating bucket:', createError);
+      }
+    }
 
-  if (error) {
-    throw new Error(`Failed to upload image: ${error.message}`);
+    // Upload the file
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(fileName, file, {
+        contentType: 'image/jpeg',
+        upsert: true
+      });
+
+    if (error) {
+      console.error('Upload error:', error);
+      throw new Error(`Failed to upload image: ${error.message}`);
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(fileName);
+
+    return publicUrl;
+  } catch (error) {
+    console.error('Image upload failed:', error);
+    throw error;
   }
-
-  const { data: { publicUrl } } = supabase.storage
-    .from(bucket)
-    .getPublicUrl(fileName);
-
-  return publicUrl;
 };
 
 export const deleteImage = async (fileName: string): Promise<void> => {
