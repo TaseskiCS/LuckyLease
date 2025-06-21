@@ -53,7 +53,7 @@ export default function ListingsPage() {
       if (filters.startDate) params.append('startDate', filters.startDate);
       if (filters.endDate) params.append('endDate', filters.endDate);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/listings?${params}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/listings/browse?${params}`);
       const data = await response.json();
 
       if (!response.ok) {
