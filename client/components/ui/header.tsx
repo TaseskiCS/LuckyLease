@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Clover, LogOut, User } from "lucide-react";
+import { Clover, Layout, LogOut, Map, Plus, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 
@@ -64,30 +64,28 @@ export default function Header() {
           <nav className="hidden md:flex items-center space-x-6">
             <Link
               href="/listings/browse"
-              className="text-gray-600 hover:text-emerald-600 transition-colors"
+              className="text-gray-600 hover:text-emerald-600 transition-colors flex items-center"
             >
+              <Layout className="h-4 w-4 mr-2" />
               Browse
             </Link>
+            
+            
+            <Link
+              href="/map"
+              className="text-gray-600 hover:text-emerald-600 transition-colors flex items-center"
+            >
+              <Map className="h-4 w-4 mr-2" />
+              Map
+            </Link>
             {user && (
-              <Link
-                href="/listings/create"
-                className="text-gray-600 hover:text-emerald-600 transition-colors"
-              >
-                List Property
-              </Link>
+              <Button className="bg-emerald-600 hover:bg-emerald-700">
+              <Link href="/listings/create" className="flex items-center">
+                <Plus className="h-4 w-4 mr-2" />
+                  List Your Space
+                </Link>
+              </Button>
             )}
-            <Link
-              href="/#how-it-works"
-              className="text-gray-600 hover:text-emerald-600 transition-colors"
-            >
-              How It Works
-            </Link>
-            <Link
-              href="/contact"
-              className="text-gray-600 hover:text-emerald-600 transition-colors"
-            >
-              Support
-            </Link>
           </nav>
 
           {/* User Actions */}
