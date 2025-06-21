@@ -11,6 +11,8 @@ import authRoutes from './routes/auth';
 import listingRoutes from './routes/listings';
 import messageRoutes from './routes/messages';
 import offerRoutes from './routes/offers';
+import ratingRoutes from './routes/rating';
+
 
 // Import middleware
 import { authenticateToken } from './middleware/auth';
@@ -58,6 +60,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/listings', listingRoutes);
 app.use('/api/messages', authenticateToken, messageRoutes);
 app.use('/api/offers', authenticateToken, offerRoutes);
+app.use('/api/rating', ratingRoutes);
+
 
 // Setup socket handlers
 setupSocketHandlers(io);
