@@ -1,0 +1,120 @@
+/* Map container positioning */
+.map-container {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+}
+
+/* Ensure the leaflet container takes full dimensions */
+.map-container .leaflet-container {
+  position: relative;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Remove blur effects for full-screen map */
+.map-container .leaflet-container::before {
+  display: none;
+}
+
+/* Custom Leaflet popup styling to match the site theme */
+.leaflet-popup-content-wrapper {
+  padding: 0 !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.4 !important;
+  font-size: 13px !important;
+}
+
+.leaflet-popup-tip {
+  background: white !important;
+  border: 1px solid #e5e7eb !important;
+  border-top: none !important;
+  border-right: none !important;
+}
+
+.custom-popup .leaflet-popup-close-button {
+  top: 6px !important;
+  right: 6px !important;
+  font-size: 16px !important;
+  color: #6b7280 !important;
+  font-weight: bold !important;
+  width: 18px !important;
+  height: 18px !important;
+  line-height: 16px !important;
+}
+
+.custom-popup .leaflet-popup-close-button:hover {
+  color: #374151 !important;
+  background-color: #f3f4f6 !important;
+  border-radius: 50% !important;
+}
+
+/* Ensure the popup content is styled correctly */
+.leaflet-popup a {
+  text-decoration: none !important;
+  color: inherit !important;
+}
+
+.leaflet-popup a:hover {
+  text-decoration: none !important;
+}
+
+/* Force white text on buttons */
+.leaflet-popup a[style*="color: white"] {
+  color: white !important;
+}
+
+.leaflet-popup a[style*="color: white"]:visited {
+  color: white !important;
+}
+
+.leaflet-popup a[style*="color: white"]:hover {
+  color: white !important;
+}
+
+/* Compact popup styling */
+.compact-popup {
+  max-width: 220px !important;
+}
+
+/* Line clamp utility for truncating text */
+.line-clamp-2 {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+/* Custom green marker styling */
+.custom-green-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-green-marker div {
+  position: relative;
+}
+
+/* Remove any filter effects from custom markers */
+.custom-green-marker .leaflet-marker-icon {
+  filter: none !important;
+}
+
+/* Responsive popup styling */
+@media (max-width: 640px) {
+  .leaflet-popup-content-wrapper {
+    max-width: 200px !important;
+  }
+  
+  .compact-popup {
+    max-width: 180px !important;
+  }
+}
