@@ -152,17 +152,6 @@ RoomRelay/
 - ✅ Responsive design
 - ✅ Production deployment
 
-## 🔮 Future Enhancements
-
-- Advanced search with location-based filtering
-- Payment integration
-- User reviews and ratings
-- Push notifications
-- Mobile app
-- Advanced AI features
-- Video tours
-- Background checks
-
 
 ## 🆘 Support
 
