@@ -373,17 +373,10 @@ export default function ListingsPage() {
             ) : (
               <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {listings.map((listing, index) => (
-
                   <Card key={listing.id} className="overflow-hidden hover:shadow-xl transition-all duration-200 group">
                     <Link href={`/listings/browse/${listing.id}`}>
                       <div className="relative cursor-pointer">
-                        {listing.imageUrls.length > 0 ? (
-
-                  <Link key={listing.id} href={`/listings/browse/${listing.id}`}>
-                    <Card className="overflow-hidden hover:shadow-xl transition-all duration-200 cursor-pointer group">
-                      <div className="relative">
                         {listing.imageUrls && listing.imageUrls.length > 0 ? (
-
                           <img
                             src={listing.imageUrls[0]}
                             alt={listing.title}
@@ -485,7 +478,7 @@ export default function ListingsPage() {
                             {listing.airConditioning && (
                               <Badge variant="secondary" className="text-xs">AC</Badge>
                             )}
-                            {listing.tags.slice(0, 2).map((tag, tagIndex) => (
+                            {listing.tags && listing.tags.slice(0, 2).map((tag, tagIndex) => (
                               <Badge key={tagIndex} variant="outline" className="text-xs">
                                 {tag}
                               </Badge>
@@ -497,7 +490,6 @@ export default function ListingsPage() {
                               {listing.summary}
                             </p>
                           )}
-
 
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center space-x-2">
@@ -517,42 +509,12 @@ export default function ListingsPage() {
                               </div>
                               <div className="flex items-center text-gray-500">
                                 <Heart className="h-4 w-4 mr-1" />
-                                <span className="text-sm">{listing._count.likes}</span>
+                                <span className="text-sm">{listing._count?.likes || 0}</span>
                               </div>
-
-                          {listing.tags && listing.tags.slice(0, 2).map((tag, tagIndex) => (
-                            <Badge key={tagIndex} variant="outline" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-
-                        {listing.summary && (
-                          <p className="text-sm text-gray-600 line-clamp-2 mb-4">
-                            {listing.summary}
-                          </p>
-                        )}
-
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <Avatar className="w-6 h-6">
-                              <AvatarFallback className="text-xs">
-                                {listing.user.name.split(' ').map(n => n[0]).join('')}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-sm text-gray-600">{listing.user.name}</span>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <div className="flex items-center text-gray-500">
-                              <Heart className="h-4 w-4 mr-1" />
-                              <span className="text-sm">{listing._count?.likes || 0}</span>
-
                             </div>
                           </div>
                         </div>
                       </Link>
-
-
                     </CardContent>
                   </Card>
                 ))}
