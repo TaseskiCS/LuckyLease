@@ -34,8 +34,9 @@ const io = new Server(server, {
   },
 });
 
-// ← Default port set to 8080
+// Port configuration for Render deployment
 const PORT = Number(process.env.PORT) || 8080;
+const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
 
 // Rate limiting
 const limiter = rateLimit({ windowMs:15*60*1000, max:100 });
@@ -79,6 +80,34 @@ app.use((err:any, _req:Request, res:Response, _next:NextFunction) => {
   });
 });
 
-server.listen(PORT, () =>
-  console.log(`🚀 Server listening on http://localhost:${PORT}`)
-);
+server.listen(PORT, HOST, () => {
+  console.log(`🚀 Server listening on http://${HOST}:${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Port binding to: ${HOST}:${PORT}`);
+});
+
+// Handle server startup errors
+server.on('error', (error: any) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use`);
+    process.exit(1);
+  } else {
+    console.error('❌ Server error:', error);
+    process.exit(1);
+  }
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('👋 SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('✅ Process terminated');
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('👋 SIGINT received, shutting down gracefully');
+  server.close(() => {
+    console.log('✅ Process terminated');
+  });
+});
