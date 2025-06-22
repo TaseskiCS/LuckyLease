@@ -1,24 +1,21 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { 
-  MapPin, 
-  DollarSign, 
-  Calendar, 
-  Heart, 
-  Star, 
-  Bed, 
-  Bath, 
-  Mail, 
-  Phone, 
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  MapPin,
+  DollarSign,
+  Calendar,
+  Heart,
+  Bed,
+  Bath,
+  Mail,
+  Phone,
   MessageCircle,
   ArrowLeft,
   Share2,
-  Users,
   Home,
-  Wifi,
   Car,
   PawPrint,
   Snowflake,
@@ -28,16 +25,15 @@ import {
   User,
   Shield,
   PhoneCall,
-  MessageSquare
-} from 'lucide-react';
+  MessageSquare,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LuckyOpinion } from "@/components/ui/lucky-opinion";
 import { Chat } from "@/components/ui/chat";
 import { getUserInfo } from "@/lib/auth";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 interface Listing {
   id: string;
@@ -87,76 +83,86 @@ export default function ListingDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<{ id: string; token: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{
+    id: string;
+    token: string;
+  } | null>(null);
 
   useEffect(() => {
     fetchListing();
     // Get current user info using the utility function
-    console.log('Listing page useEffect - checking for user info...');
+    console.log("Listing page useEffect - checking for user info...");
     const userInfo = getUserInfo();
     if (userInfo) {
       setCurrentUser(userInfo);
-      console.log('User info loaded successfully:', userInfo);
+      console.log("User info loaded successfully:", userInfo);
     } else {
-      console.log('No user info found, user will need to log in');
+      console.log("No user info found, user will need to log in");
     }
   }, [params.listing]);
 
   const fetchListing = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/listings/${params.listing}`);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/listings/${params.listing}`
+      );
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch listing');
+        throw new Error(data.error || "Failed to fetch listing");
       }
 
       setListing(data.listing);
     } catch (error) {
-      toast.error('Failed to load listing');
-      console.error('Error fetching listing:', error);
+      toast.error("Failed to load listing");
+      console.error("Error fetching listing:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
   const formatMemberSince = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'long',
-      year: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
     });
   };
 
   const handleContact = () => {
     // Always open in-app messaging
-    console.log('handleContact called, currentUser:', currentUser);
-    console.log('localStorage contents:', {
-      token: localStorage.getItem('token'),
-      user: localStorage.getItem('user'),
-      userInfo: localStorage.getItem('userInfo')
+    console.log("handleContact called, currentUser:", currentUser);
+    console.log("localStorage contents:", {
+      token: localStorage.getItem("token"),
+      user: localStorage.getItem("user"),
+      userInfo: localStorage.getItem("userInfo"),
     });
-    
+
     if (!currentUser) {
-      console.log('No currentUser, redirecting to login');
-      toast.error('Please log in to send messages');
-      router.push('/auth/login');
+      console.log("No currentUser, redirecting to login");
+      toast.error("Please log in to send messages");
+      router.push("/auth/login");
       return;
     }
-    console.log('Opening chat for listing:', listing?.id, 'with user:', listing?.user.id);
+    console.log(
+      "Opening chat for listing:",
+      listing?.id,
+      "with user:",
+      listing?.user.id
+    );
     setIsChatOpen(true);
   };
 
   const handleLike = () => {
     setIsLiked(!isLiked);
-    toast.success(isLiked ? 'Removed from favorites' : 'Added to favorites');
+    toast.success(isLiked ? "Removed from favorites" : "Added to favorites");
   };
 
   if (loading) {
@@ -174,8 +180,12 @@ export default function ListingDetailPage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Listing not found</h2>
-          <p className="text-gray-600 mb-6">The listing you're looking for doesn't exist.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Listing not found
+          </h2>
+          <p className="text-gray-600 mb-6">
+            The listing you're looking for doesn't exist.
+          </p>
           <Link href="/listings/browse">
             <Button className="bg-emerald-600 hover:bg-emerald-700">
               Back to Browse
@@ -192,7 +202,10 @@ export default function ListingDetailPage() {
         {/* Back Button */}
         <div className="mb-6">
           <Link href="/listings/browse">
-            <Button variant="ghost" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
+            <Button
+              variant="ghost"
+              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+            >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Browse</span>
             </Button>
@@ -217,7 +230,11 @@ export default function ListingDetailPage() {
                     className="bg-white/90 hover:bg-white"
                     onClick={handleLike}
                   >
-                    <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                    <Heart
+                      className={`w-4 h-4 ${
+                        isLiked ? "fill-red-500 text-red-500" : ""
+                      }`}
+                    />
                   </Button>
                   <Button
                     size="sm"
@@ -228,7 +245,7 @@ export default function ListingDetailPage() {
                   </Button>
                 </div>
               </div>
-              
+
               {/* Thumbnail Images */}
               {listing.imageUrls.length > 1 && (
                 <div className="flex space-x-2 overflow-x-auto">
@@ -237,7 +254,9 @@ export default function ListingDetailPage() {
                       key={index}
                       onClick={() => setSelectedImage(index)}
                       className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
-                        selectedImage === index ? 'border-emerald-500' : 'border-gray-200'
+                        selectedImage === index
+                          ? "border-emerald-500"
+                          : "border-gray-200"
                       }`}
                     >
                       <img
@@ -250,11 +269,11 @@ export default function ListingDetailPage() {
                 </div>
               )}
             </div>
-
             {/* Title and Basic Info */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">{listing.title}</h1>
-              
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                {listing.title}
+              </h1>
               <div className="flex items-center space-x-6 text-gray-600 mb-4">
                 <div className="flex items-center">
                   <MapPin className="w-5 h-5 mr-2" />
@@ -262,10 +281,12 @@ export default function ListingDetailPage() {
                 </div>
                 <div className="flex items-center">
                   <Calendar className="w-5 h-5 mr-2" />
-                  <span>{formatDate(listing.startDate)} - {formatDate(listing.endDate)}</span>
+                  <span>
+                    {formatDate(listing.startDate)} -{" "}
+                    {formatDate(listing.endDate)}
+                  </span>
                 </div>
-              </div>
-
+              </div>{" "}
               <div className="flex items-center space-x-6 text-gray-600">
                 <div className="flex items-center">
                   <Bed className="w-5 h-5 mr-2" />
@@ -275,73 +296,86 @@ export default function ListingDetailPage() {
                   <Bath className="w-5 h-5 mr-2" />
                   <span>{listing.bathrooms} bathroom</span>
                 </div>
-                <div className="flex items-center">
-                  <Users className="w-5 h-5 mr-2" />
-                  <span>1 person</span>
-                </div>
               </div>
             </div>
-
             <div className="border-t border-gray-200 mb-8"></div>
-
             {/* Description */}
             <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">About this place</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                About this place
+              </h2>
               <div className="prose prose-gray max-w-none">
                 <p className="text-gray-700 leading-relaxed whitespace-pre-line">
                   {listing.detailedDescription}
                 </p>
               </div>
             </div>
-
-            <div className="border-t border-gray-200 mb-8"></div>
-
-            {/* Amenities */}
+            <div className="border-t border-gray-200 mb-8"></div>{" "}
+            {/* Amenities & Policies */}
             <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Amenities</h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center space-x-3">
-                  <Wifi className="w-5 h-5 text-emerald-600" />
-                  <span className="text-gray-700">High-speed WiFi</span>
-                </div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Amenities & Policies
+              </h2>
+              <div className="grid grid-cols-1 gap-4">
                 {listing.petsAllowed && (
-                  <div className="flex items-center space-x-3">
-                    <PawPrint className="w-5 h-5 text-emerald-600" />
-                    <span className="text-gray-700">Pets allowed</span>
+                  <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
+                    <PawPrint className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <div className="font-medium text-gray-900">
+                        Pets Allowed
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Pets are welcome in this space
+                      </div>
+                    </div>
                   </div>
                 )}
                 {listing.laundryInBuilding && (
-                  <div className="flex items-center space-x-3">
-                    <Settings className="w-5 h-5 text-emerald-600" />
-                    <span className="text-gray-700">Laundry in building</span>
+                  <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
+                    <Settings className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <div className="font-medium text-gray-900">
+                        Laundry in Building
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Washer and dryer available on-site
+                      </div>
+                    </div>
                   </div>
                 )}
                 {listing.parkingAvailable && (
-                  <div className="flex items-center space-x-3">
-                    <Car className="w-5 h-5 text-emerald-600" />
-                    <span className="text-gray-700">Parking available</span>
+                  <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
+                    <Car className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <div className="font-medium text-gray-900">
+                        Parking Available
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Parking space included or available
+                      </div>
+                    </div>
                   </div>
                 )}
                 {listing.airConditioning && (
-                  <div className="flex items-center space-x-3">
-                    <Snowflake className="w-5 h-5 text-emerald-600" />
-                    <span className="text-gray-700">Air conditioning</span>
+                  <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
+                    <Snowflake className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <div className="font-medium text-gray-900">
+                        Air Conditioning
+                      </div>
+                    </div>
                   </div>
                 )}
-                <div className="flex items-center space-x-3">
-                  <Home className="w-5 h-5 text-emerald-600" />
-                  <span className="text-gray-700">Fully furnished</span>
-                </div>
               </div>
             </div>
-
             <div className="border-t border-gray-200 mb-8"></div>
-
             {/* Rules */}
             {listing.rules && listing.rules.length > 0 && (
               <>
                 <div className="mb-8">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">House rules</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                    House rules
+                  </h2>
                   <div className="space-y-2">
                     {listing.rules.map((rule, index) => (
                       <div key={index} className="flex items-start space-x-3">
@@ -354,12 +388,13 @@ export default function ListingDetailPage() {
                 <div className="border-t border-gray-200 mb-8"></div>
               </>
             )}
-
             {/* Nearby Amenities */}
             {listing.nearbyAmenities && listing.nearbyAmenities.length > 0 && (
               <>
                 <div className="mb-8">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">What's nearby</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                    What's nearby
+                  </h2>
                   <div className="grid grid-cols-2 gap-4">
                     {listing.nearbyAmenities.map((amenity, index) => (
                       <div key={index} className="flex items-center space-x-3">
@@ -379,19 +414,17 @@ export default function ListingDetailPage() {
             {/* Price Card */}
             <Card className="top-24 mb-6">
               <CardContent className="p-6">
-                <div className="flex items-baseline justify-between mb-4">
+                {" "}
+                <div className="mb-4">
                   <div>
-                    <span className="text-3xl font-bold text-emerald-600">${listing.price}</span>
+                    <span className="text-3xl font-bold text-emerald-600">
+                      ${listing.price}
+                    </span>
                     <span className="text-gray-600 ml-1">/month</span>
                   </div>
-                  <div className="flex items-center">
-                    <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                    <span className="text-gray-600 ml-1">4.8</span>
-                  </div>
                 </div>
-
                 <div className="space-y-3 mb-6">
-                  <Button 
+                  <Button
                     onClick={handleContact}
                     className="w-full bg-emerald-600 hover:bg-emerald-700"
                   >
@@ -399,17 +432,17 @@ export default function ListingDetailPage() {
                     Send Message
                   </Button>
                 </div>
-
                 <div className="text-center text-sm text-gray-500">
                   <p>No booking fees • Secure payment</p>
                 </div>
               </CardContent>
             </Card>
-
             {/* Lucky Opinion */}
             <Card className="mb-6">
               <CardContent className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Need advice?</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">
+                  Need advice?
+                </h3>
                 <LuckyOpinion
                   listing={{
                     id: listing.id,
@@ -423,24 +456,22 @@ export default function ListingDetailPage() {
                     laundryInBuilding: listing.laundryInBuilding,
                     parkingAvailable: listing.parkingAvailable,
                     airConditioning: listing.airConditioning,
-                    school: listing.school
+                    school: listing.school,
                   }}
                 />
               </CardContent>
-            </Card>
-
+            </Card>{" "}
             {/* Host Information */}
             <Card className="mb-6">
               <CardContent className="p-6">
                 <div className="flex items-center space-x-4 mb-4">
-                  <Avatar className="w-16 h-16">
-                    <AvatarImage src={listing.user.avatar} />
-                    <AvatarFallback className="text-lg">
-                      {listing.user.name.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center">
+                    <User className="w-8 h-8 text-emerald-600" />
+                  </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">{listing.user.name}</h3>
+                    <h3 className="font-semibold text-gray-900">
+                      {listing.user.name}
+                    </h3>
                     <div className="flex items-center space-x-2">
                       {listing.user.verified && (
                         <Badge variant="secondary" className="text-xs">
@@ -449,46 +480,19 @@ export default function ListingDetailPage() {
                         </Badge>
                       )}
                       <span className="text-sm text-gray-600">
-                        Member since {formatMemberSince(listing.user.memberSince)}
+                        Member since{" "}
+                        {formatMemberSince(listing.user.memberSince)}
                       </span>
                     </div>
                   </div>
                 </div>
-
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Response rate:</span>
-                    <span className="font-medium">{listing.user.responseRate}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Response time:</span>
-                    <span className="font-medium">{listing.user.responseTime}</span>
-                  </div>
-                </div>
-
-                <div className="border-t border-gray-200 my-4"></div>
 
                 <Button variant="outline" className="w-full">
                   <User className="w-4 h-4 mr-2" />
                   View Profile
                 </Button>
               </CardContent>
-            </Card>
-
-            {/* Utilities Included */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Utilities included</h3>
-                <div className="space-y-2">
-                  {listing.utilities?.map((utility, index) => (
-                    <div key={index} className="flex items-center space-x-3">
-                      <CheckCircle className="w-4 h-4 text-emerald-600" />
-                      <span className="text-sm text-gray-700">{utility}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            </Card>{" "}
           </div>
         </div>
       </div>
@@ -506,4 +510,4 @@ export default function ListingDetailPage() {
       )}
     </div>
   );
-} 
+}

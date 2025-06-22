@@ -1,10 +1,8 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 
-
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -59,12 +57,10 @@ interface Listing {
   updatedAt: string;
 }
 
-
-
 export default function HomePage() {
   const [featuredListings, setFeaturedListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchCity, setSearchCity] = useState('');
+  const [searchCity, setSearchCity] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -82,13 +78,13 @@ export default function HomePage() {
 
         setFeaturedListings(data.listings || []);
       } catch (error) {
-        console.error('Error fetching featured listings:', error);
+        console.error("Error fetching featured listings:", error);
         // Don't show error toast on main page, just log it
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchFeaturedListings();
   }, []);
 
@@ -96,10 +92,12 @@ export default function HomePage() {
     e.preventDefault();
     if (searchCity.trim()) {
       // Navigate to browse page with location filter
-      router.push(`/listings/browse?location=${encodeURIComponent(searchCity.trim())}`);
+      router.push(
+        `/listings/browse?location=${encodeURIComponent(searchCity.trim())}`
+      );
     } else {
       // Navigate to browse page without filter
-      router.push('/listings/browse');
+      router.push("/listings/browse");
     }
   };
   return (
@@ -151,7 +149,10 @@ export default function HomePage() {
             </p>
 
             {/* Search Bar */}
-            <form onSubmit={handleSearch} className="bg-white rounded-2xl shadow-xl p-8 mb-12">
+            <form
+              onSubmit={handleSearch}
+              className="bg-white rounded-2xl shadow-xl p-8 mb-12"
+            >
               <div className="flex flex-col md:flex-row gap-6">
                 <div className="flex-1">
                   <div className="relative">
@@ -164,7 +165,7 @@ export default function HomePage() {
                     />
                   </div>
                 </div>
-                <Button 
+                <Button
                   type="submit"
                   className="h-14 px-10 bg-emerald-600 hover:bg-emerald-700 hover:scale-105 transition-all duration-300 ease-in-out hover:shadow-xl text-lg"
                 >
@@ -205,15 +206,23 @@ export default function HomePage() {
           ) : featuredListings.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {featuredListings.slice(0, 3).map((listing, index) => {
-                const badgeColors = ['bg-emerald-600', 'bg-orange-500', 'bg-blue-500'];
-                const badgeTexts = ['Featured', 'Hot Deal', 'New'];
-                const gradientColors = [
-                  'from-emerald-100 to-emerald-200',
-                  'from-blue-100 to-blue-200', 
-                  'from-purple-100 to-purple-200'
+                const badgeColors = [
+                  "bg-emerald-600",
+                  "bg-orange-500",
+                  "bg-blue-500",
                 ];
-                const iconColors = ['text-emerald-600', 'text-blue-600', 'text-purple-600'];
-                
+                const badgeTexts = ["Featured", "Hot Deal", "New"];
+                const gradientColors = [
+                  "from-emerald-100 to-emerald-200",
+                  "from-blue-100 to-blue-200",
+                  "from-purple-100 to-purple-200",
+                ];
+                const iconColors = [
+                  "text-emerald-600",
+                  "text-blue-600",
+                  "text-purple-600",
+                ];
+
                 return (
                   <Card
                     key={listing.id}
@@ -231,8 +240,14 @@ export default function HomePage() {
                             />
                           </div>
                         ) : (
-                          <div className={`w-full h-48 bg-gradient-to-r ${gradientColors[index % 3]} flex items-center justify-center`}>
-                            <Home className={`w-16 h-16 ${iconColors[index % 3]}`} />
+                          <div
+                            className={`w-full h-48 bg-gradient-to-r ${
+                              gradientColors[index % 3]
+                            } flex items-center justify-center`}
+                          >
+                            <Home
+                              className={`w-16 h-16 ${iconColors[index % 3]}`}
+                            />
                           </div>
                         )}
                         <Button
@@ -242,7 +257,11 @@ export default function HomePage() {
                         >
                           <Heart className="w-4 h-4" />
                         </Button>
-                        <Badge className={`absolute top-3 left-3 ${badgeColors[index % 3]}`}>
+                        <Badge
+                          className={`absolute top-3 left-3 ${
+                            badgeColors[index % 3]
+                          }`}
+                        >
                           {badgeTexts[index % 3]}
                         </Badge>
                       </div>
@@ -264,7 +283,9 @@ export default function HomePage() {
                               <div className="text-2xl font-bold text-emerald-600">
                                 ${listing.price}
                               </div>
-                              <div className="text-sm text-gray-500">/month</div>
+                              <div className="text-sm text-gray-500">
+                                /month
+                              </div>
                             </div>
                           </div>
                           <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
@@ -278,7 +299,9 @@ export default function HomePage() {
                               <Bath className="w-4 h-4 mr-1" />
                               {listing.bathrooms} bath
                             </span>
-                            <span className="capitalize">{listing.listingType}</span>
+                            <span className="capitalize">
+                              {listing.listingType}
+                            </span>
                           </div>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-2">
@@ -347,19 +370,21 @@ export default function HomePage() {
               <InteractiveMap
                 height="450px"
                 className="rounded-xl overflow-hidden shadow-2xl"
-                listings={featuredListings.filter(listing => listing.coordinates).map((listing) => ({
-                  id: listing.id,
-                  position: [
-                    listing.coordinates!.lat,
-                    listing.coordinates!.lng,
-                  ] as [number, number],
-                  title: listing.title,
-                  price: `$${listing.price}/month`,
-                  description: listing.description,
-                  listingUrl: `/listings/browse/${listing.id}`,
-                  rating: undefined,
-                  distance: undefined,
-                }))}
+                listings={featuredListings
+                  .filter((listing) => listing.coordinates)
+                  .map((listing) => ({
+                    id: listing.id,
+                    position: [
+                      listing.coordinates!.lat,
+                      listing.coordinates!.lng,
+                    ] as [number, number],
+                    title: listing.title,
+                    price: `$${listing.price}/month`,
+                    description: listing.description,
+                    listingUrl: `/listings/browse/${listing.id}`,
+                    rating: undefined,
+                    distance: undefined,
+                  }))}
               />
             )}
           </div>

@@ -23,87 +23,86 @@ import {
   DollarSign,
   Bed,
   Bath,
-} from 'lucide-react';
+} from "lucide-react";
 import { Chat } from "@/components/ui/chat";
 
-// Mock data - replace with real data from your backend
-const mockUser = {
-  id: 1,
-  name: "Alex Johnson",
-  email: "alex.johnson@uwaterloo.ca",
-  phone: "+1 (519) 123-4567",
-  university: "University of Waterloo",
-  program: "Computer Science",
-  year: "3rd Year",
-  location: "Waterloo, ON",
-  bio: "Looking for clean, quiet spaces close to campus. Non-smoker, respectful of shared spaces, and always pay rent on time!",
-  joinDate: "September 2023",
-  rating: 4.8,
-  totalReviews: 12,
-};
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  university?: string;
+  program?: string;
+  year?: string;
+  location?: string;
+  bio?: string;
+  isRenter: boolean;
+  isSeller: boolean;
+}
 
-const mockReviews = [
-  {
-    id: 1,
-    reviewer: "Sarah Chen",
-    rating: 5,
-    date: "2024-12-15",
-    comment:
-      "Alex was an amazing tenant! Always kept common areas clean, paid rent on time, and was very respectful. Would definitely recommend!",
-  },
-  {
-    id: 2,
-    reviewer: "Mike Rodriguez",
-    rating: 5,
-    date: "2024-11-28",
-    comment:
-      "Great communication and very responsible. Left the place in perfect condition when moving out.",
-  },
-  {
-    id: 3,
-    reviewer: "Emma Wilson",
-    rating: 4,
-    date: "2024-10-10",
-    comment:
-      "Alex is quiet and respectful. Good roommate overall, would rent to again.",
-  },
-];
+interface Review {
+  id: string;
+  reviewer: string;
+  rating: number;
+  date: string;
+  comment: string;
+}
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'profile' | 'listings' | 'favorites' | 'reviews' | 'messages'>('profile');
+  const [activeTab, setActiveTab] = useState<
+    "profile" | "listings" | "favorites" | "reviews" | "messages"
+  >("profile");
   const [isEditing, setIsEditing] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<{ id: string; token: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{
+    id: string;
+    token: string;
+  } | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [favoriteListings, setFavoriteListings] = useState<any[]>([]);
   const [userListings, setUserListings] = useState<any[]>([]);
   const [loadingListings, setLoadingListings] = useState(false);
   const [loadingFavorites, setLoadingFavorites] = useState(false);
+  const [loadingUser, setLoadingUser] = useState(true);
 
   useEffect(() => {
-    loadFavorites();
     // Get current user info from localStorage
-    const userInfo = localStorage.getItem('userInfo');
-    if (userInfo) {
+    const token = localStorage.getItem("token");
+    const userData = localStorage.getItem("user");
+    const userInfo = localStorage.getItem("userInfo");
+
+    if (token && userData) {
       try {
-        const user = JSON.parse(userInfo);
-        setCurrentUser(user);
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+
+        if (userInfo) {
+          setCurrentUser(JSON.parse(userInfo));
+        }
       } catch (error) {
-        console.error('Error parsing user info:', error);
+        console.error("Error parsing user info:", error);
+        router.push("/auth/login");
       }
+    } else {
+      router.push("/auth/login");
     }
-  }, []);
+
+    setLoadingUser(false);
+    loadFavorites();
+  }, [router]);
 
   // Load favorites when favorites tab is selected
   useEffect(() => {
-    if (activeTab === 'favorites') {
+    if (activeTab === "favorites") {
       loadFavoriteListings();
     }
   }, [activeTab]);
 
   // Load user listings when listings tab is selected
   useEffect(() => {
-    if (activeTab === 'listings') {
+    if (activeTab === "listings") {
       loadUserListings();
     }
   }, [activeTab]);
@@ -278,6 +277,40 @@ export default function DashboardPage() {
     );
   };
 
+  const handleSaveProfile = async (formData: FormData) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("Please log in to update profile");
+        return;
+      }
+
+      // Extract form data
+      const profileData = {
+        name: formData.get("name") as string,
+        phone: formData.get("phone") as string,
+        location: formData.get("location") as string,
+        university: formData.get("university") as string,
+        program: formData.get("program") as string,
+        year: formData.get("year") as string,
+        bio: formData.get("bio") as string,
+      };
+
+      // In a real implementation, you would make an API call here
+      // For now, we'll just update the local state
+      if (user) {
+        const updatedUser = { ...user, ...profileData };
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        toast.success("Profile updated successfully!");
+        setIsEditing(false);
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-50">
       {/* Header */}
@@ -299,22 +332,20 @@ export default function DashboardPage() {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-lg p-6 sticky top-8">
+              {" "}
               {/* User Info */}
               <div className="text-center mb-6">
                 <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <User className="w-12 h-12 text-emerald-600" />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900">
-                  {mockUser.name}
+                  {user?.name || "Loading..."}
                 </h2>
                 <div className="flex items-center justify-center space-x-1 mt-2">
-                  {renderStars(mockUser.rating)}
-                  <span className="text-sm text-gray-600 ml-2">
-                    {mockUser.rating} ({mockUser.totalReviews} reviews)
-                  </span>
+                  {renderStars(0)}
+                  <span className="text-sm text-gray-600 ml-2">New Member</span>
                 </div>
               </div>
-
               {/* Navigation */}
               <nav className="space-y-2">
                 <button
@@ -366,24 +397,28 @@ export default function DashboardPage() {
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('messages')}
+                  onClick={() => setActiveTab("messages")}
                   className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                    activeTab === 'messages'
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : 'text-gray-600 hover:bg-gray-50'
+                    activeTab === "messages"
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      : "text-gray-600 hover:bg-gray-50"
                   }`}
                 >
                   <MessageSquare className="w-5 h-5" />
                   <span className="font-medium">Messages</span>
                 </button>
-              </nav>
-
+              </nav>{" "}
               {/* Quick Stats */}
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <div className="text-center">
                   <div className="text-sm text-gray-600">Member since</div>
                   <div className="font-medium text-gray-900">
-                    {mockUser.joinDate}
+                    {user
+                      ? new Date().toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                        })
+                      : "Loading..."}
                   </div>
                 </div>
               </div>
@@ -392,170 +427,236 @@ export default function DashboardPage() {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
+            {" "}
             {/* Profile Tab */}
             {activeTab === "profile" && (
               <div className="bg-white rounded-lg shadow-lg p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    Profile Information
-                  </h2>
-                  <button
-                    onClick={() => setIsEditing(!isEditing)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                    <span>{isEditing ? "Save Changes" : "Edit Profile"}</span>
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Personal Information */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-                      Personal Information
-                    </h3>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Full Name
-                      </label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          defaultValue={mockUser.name}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                        />
-                      ) : (
-                        <p className="text-gray-900">{mockUser.name}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email
-                      </label>
-                      <div className="flex items-center space-x-2">
-                        <Mail className="w-4 h-4 text-gray-400" />
-                        <p className="text-gray-900">{mockUser.email}</p>
+                {loadingUser ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading profile...</p>
+                  </div>
+                ) : (
+                  <>
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const formData = new FormData(e.currentTarget);
+                        handleSaveProfile(formData);
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-2xl font-bold text-gray-900">
+                          Profile Information
+                        </h2>
+                        <div className="flex space-x-2">
+                          {isEditing && (
+                            <button
+                              type="button"
+                              onClick={() => setIsEditing(false)}
+                              className="flex items-center space-x-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          )}
+                          <button
+                            type={isEditing ? "submit" : "button"}
+                            onClick={
+                              isEditing ? undefined : () => setIsEditing(true)
+                            }
+                            className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                            <span>
+                              {isEditing ? "Save Changes" : "Edit Profile"}
+                            </span>
+                          </button>
+                        </div>
                       </div>
-                    </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Phone
-                      </label>
-                      {isEditing ? (
-                        <input
-                          type="tel"
-                          defaultValue={mockUser.phone}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                        />
-                      ) : (
-                        <div className="flex items-center space-x-2">
-                          <Phone className="w-4 h-4 text-gray-400" />
-                          <p className="text-gray-900">{mockUser.phone}</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Personal Information */}
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
+                            Personal Information
+                          </h3>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Full Name
+                            </label>
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                name="name"
+                                defaultValue={user?.name || ""}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              />
+                            ) : (
+                              <p className="text-gray-900">
+                                {user?.name || "Not provided"}
+                              </p>
+                            )}
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Email
+                            </label>
+                            <div className="flex items-center space-x-2">
+                              <Mail className="w-4 h-4 text-gray-400" />
+                              <p className="text-gray-900">
+                                {user?.email || "Not provided"}
+                              </p>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Email cannot be changed
+                            </p>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Phone
+                            </label>
+                            {isEditing ? (
+                              <input
+                                type="tel"
+                                name="phone"
+                                defaultValue={user?.phone || ""}
+                                placeholder="Add your phone number"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              />
+                            ) : (
+                              <div className="flex items-center space-x-2">
+                                <Phone className="w-4 h-4 text-gray-400" />
+                                <p className="text-gray-900">
+                                  {user?.phone || "Not provided"}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Location
+                            </label>
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                name="location"
+                                defaultValue={user?.location || ""}
+                                placeholder="Add your location"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              />
+                            ) : (
+                              <div className="flex items-center space-x-2">
+                                <MapPin className="w-4 h-4 text-gray-400" />
+                                <p className="text-gray-900">
+                                  {user?.location || "Not provided"}
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Location
-                      </label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          defaultValue={mockUser.location}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                        />
-                      ) : (
-                        <div className="flex items-center space-x-2">
-                          <MapPin className="w-4 h-4 text-gray-400" />
-                          <p className="text-gray-900">{mockUser.location}</p>
+                        {/* Academic Information */}
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
+                            Academic Information
+                          </h3>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              University
+                            </label>
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                name="university"
+                                defaultValue={user?.university || ""}
+                                placeholder="Add your university"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              />
+                            ) : (
+                              <div className="flex items-center space-x-2">
+                                <GraduationCap className="w-4 h-4 text-gray-400" />
+                                <p className="text-gray-900">
+                                  {user?.university || "Not provided"}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Program
+                            </label>
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                name="program"
+                                defaultValue={user?.program || ""}
+                                placeholder="Add your program"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              />
+                            ) : (
+                              <p className="text-gray-900">
+                                {user?.program || "Not provided"}
+                              </p>
+                            )}
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Year
+                            </label>
+                            {isEditing ? (
+                              <select
+                                name="year"
+                                defaultValue={user?.year || ""}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              >
+                                <option value="">Select year</option>
+                                <option value="1st Year">1st Year</option>
+                                <option value="2nd Year">2nd Year</option>
+                                <option value="3rd Year">3rd Year</option>
+                                <option value="4th Year">4th Year</option>
+                                <option value="Graduate">Graduate</option>
+                              </select>
+                            ) : (
+                              <p className="text-gray-900">
+                                {user?.year || "Not provided"}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  </div>
+                      </div>
 
-                  {/* Academic Information */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-                      Academic Information
-                    </h3>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        University
-                      </label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          defaultValue={mockUser.university}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                        />
-                      ) : (
-                        <div className="flex items-center space-x-2">
-                          <GraduationCap className="w-4 h-4 text-gray-400" />
-                          <p className="text-gray-900">{mockUser.university}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Program
-                      </label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          defaultValue={mockUser.program}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                        />
-                      ) : (
-                        <p className="text-gray-900">{mockUser.program}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Year
-                      </label>
-                      {isEditing ? (
-                        <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
-                          <option>1st Year</option>
-                          <option>2nd Year</option>
-                          <option selected>3rd Year</option>
-                          <option>4th Year</option>
-                          <option>Graduate</option>
-                        </select>
-                      ) : (
-                        <p className="text-gray-900">{mockUser.year}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bio Section */}
-                <div className="mt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2 mb-4">
-                    About Me
-                  </h3>
-                  {isEditing ? (
-                    <textarea
-                      defaultValue={mockUser.bio}
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      placeholder="Tell others about yourself as a tenant/landlord..."
-                    />
-                  ) : (
-                    <p className="text-gray-700 leading-relaxed">
-                      {mockUser.bio}
-                    </p>
-                  )}
-                </div>
+                      {/* Bio Section */}
+                      <div className="mt-6">
+                        <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2 mb-4">
+                          About Me
+                        </h3>
+                        {isEditing ? (
+                          <textarea
+                            name="bio"
+                            defaultValue={user?.bio || ""}
+                            rows={4}
+                            placeholder="Tell others about yourself as a tenant/landlord..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                          />
+                        ) : (
+                          <p className="text-gray-700 leading-relaxed">
+                            {user?.bio ||
+                              'No bio provided yet. Click "Edit Profile" to add information about yourself.'}
+                          </p>
+                        )}
+                      </div>
+                    </form>
+                  </>
+                )}
               </div>
             )}
-
             {/* Favorites Tab */}
             {activeTab === "favorites" && (
               <div className="bg-white rounded-lg shadow-lg p-8">
@@ -666,7 +767,6 @@ export default function DashboardPage() {
                 )}
               </div>
             )}
-
             {/* My Listings Tab */}
             {activeTab === "listings" && (
               <div className="bg-white rounded-lg shadow-lg p-8">
@@ -802,8 +902,7 @@ export default function DashboardPage() {
                   </div>
                 )}
               </div>
-            )}
-
+            )}{" "}
             {/* Reviews Tab */}
             {activeTab === "reviews" && (
               <div className="bg-white rounded-lg shadow-lg p-8">
@@ -814,67 +913,29 @@ export default function DashboardPage() {
                   <div className="flex items-center space-x-4">
                     <div className="text-right">
                       <div className="text-3xl font-bold text-emerald-600">
-                        {mockUser.rating}
+                        0.0
                       </div>
                       <div className="flex items-center space-x-1">
-                        {renderStars(mockUser.rating)}
+                        {renderStars(0)}
                       </div>
-                      <div className="text-sm text-gray-600">
-                        {mockUser.totalReviews} reviews
-                      </div>
+                      <div className="text-sm text-gray-600">0 reviews</div>
                     </div>
                   </div>
                 </div>
 
-                {mockReviews.length === 0 ? (
-                  <div className="text-center py-12">
-                    <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      No reviews yet
-                    </h3>
-                    <p className="text-gray-600">
-                      Complete your first rental to start receiving reviews!
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {mockReviews.map((review) => (
-                      <div
-                        key={review.id}
-                        className="border border-gray-200 rounded-lg p-6"
-                      >
-                        <div className="flex items-start space-x-4">
-                          <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
-                            <User className="w-6 h-6 text-emerald-600" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-2">
-                              <div>
-                                <h4 className="font-semibold text-gray-900">
-                                  {review.reviewer}
-                                </h4>
-                                <div className="flex items-center space-x-2 mt-1">
-                                  {renderStars(review.rating)}
-                                  <span className="text-sm text-gray-600">
-                                    {review.date}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                            <p className="text-gray-700 leading-relaxed">
-                              {review.comment}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <div className="text-center py-12">
+                  <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    No reviews yet
+                  </h3>
+                  <p className="text-gray-600">
+                    Complete your first rental to start receiving reviews!
+                  </p>
+                </div>
               </div>
             )}
-
             {/* Messages Tab */}
-            {activeTab === 'messages' && (
+            {activeTab === "messages" && (
               <div className="bg-white rounded-lg shadow-lg p-8">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">Messages</h2>
@@ -886,12 +947,15 @@ export default function DashboardPage() {
                     <span>Open Chat</span>
                   </button>
                 </div>
-                
+
                 <div className="text-center py-12">
                   <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No messages yet</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    No messages yet
+                  </h3>
                   <p className="text-gray-600 mb-6">
-                    Start a conversation by contacting a listing owner or responding to messages.
+                    Start a conversation by contacting a listing owner or
+                    responding to messages.
                   </p>
                   <button
                     onClick={() => setIsChatOpen(true)}
