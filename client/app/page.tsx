@@ -1,6 +1,9 @@
-'use client';
 
-import { useState, useEffect } from 'react';
+"use client";
+
+import { useState, useEffect } from "react";
+
+
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +29,35 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import toast from "react-hot-toast";
+
+interface Listing {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  location: string;
+  startDate: string;
+  endDate: string;
+  imageUrls: string[];
+  coordinates?: { lat: number; lng: number };
+  contactMethod: "email" | "in_app" | "sms";
+  bedrooms: string;
+  bathrooms: string;
+  petsAllowed: boolean;
+  laundryInBuilding: boolean;
+  parkingAvailable: boolean;
+  airConditioning: boolean;
+  school?: string;
+  listingType: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
 
 interface Listing {
   id: number;
@@ -53,16 +85,25 @@ export default function HomePage() {
   useEffect(() => {
     const fetchFeaturedListings = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/listings?limit=3&sort=created_at&order=desc');
+        // Use Spencer's API structure but main's approach for handling response
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/listings?limit=6`
+        );
         const data = await response.json();
-        setFeaturedListings(data.listings || data);
+
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to fetch listings");
+        }
+
+        setFeaturedListings(data.listings || []);
       } catch (error) {
         console.error('Error fetching featured listings:', error);
+        // Don't show error toast on main page, just log it
       } finally {
         setLoading(false);
       }
     };
-
+    
     fetchFeaturedListings();
   }, []);
 
@@ -76,7 +117,6 @@ export default function HomePage() {
       router.push('/listings/browse');
     }
   };
-
   return (
     <div
       className="min-h-screen"
@@ -164,13 +204,13 @@ export default function HomePage() {
           </div>
           {loading ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3].map((i) => (
+              {[...Array(6)].map((_, i) => (
                 <Card key={i} className="overflow-hidden animate-pulse">
                   <div className="w-full h-48 bg-gray-200"></div>
                   <CardContent className="p-6">
                     <div className="space-y-3">
                       <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                       <div className="h-8 bg-gray-200 rounded w-1/4"></div>
                     </div>
                   </CardContent>
@@ -179,7 +219,7 @@ export default function HomePage() {
             </div>
           ) : featuredListings.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredListings.map((listing, index) => {
+              {featuredListings.slice(0, 6).map((listing, index) => {
                 const badgeColors = ['bg-emerald-600', 'bg-orange-500', 'bg-blue-500'];
                 const badgeTexts = ['Featured', 'Hot Deal', 'New'];
                 const gradientColors = [
@@ -190,13 +230,16 @@ export default function HomePage() {
                 const iconColors = ['text-emerald-600', 'text-blue-600', 'text-purple-600'];
                 
                 return (
-                  <Link key={listing.id} href={`/listings/browse/${listing.id}`}>
-                    <Card className="overflow-hidden hover:shadow-xl transition-shadow cursor-pointer">
-                      <div className="relative">
-                        {listing.images && listing.images.length > 0 ? (
+                  <Card
+                    key={listing.id}
+                    className="overflow-hidden hover:shadow-xl transition-shadow"
+                  >
+                    <Link href={`/listings/browse/${listing.id}`}>
+                      <div className="relative cursor-pointer">
+                        {listing.imageUrls && listing.imageUrls.length > 0 ? (
                           <div className="w-full h-48 relative">
                             <Image
-                              src={`http://localhost:8080${listing.images[0]}`}
+                              src={listing.imageUrls[0]}
                               alt={listing.title}
                               fill
                               className="object-cover"
@@ -218,63 +261,78 @@ export default function HomePage() {
                           {badgeTexts[index % 3]}
                         </Badge>
                       </div>
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h4 className="font-semibold text-lg line-clamp-1">
-                              {listing.title}
-                            </h4>
-                            <p className="text-gray-600 flex items-center">
-                              <MapPin className="w-4 h-4 mr-1" />
-                              {listing.location}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-2xl font-bold text-emerald-600">
-                              ${listing.price}
+                    </Link>
+                    <CardContent className="p-6">
+                      <Link href={`/listings/browse/${listing.id}`}>
+                        <div className="cursor-pointer">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h4 className="font-semibold text-lg line-clamp-2 group-hover:text-emerald-600 transition-colors">
+                                {listing.title}
+                              </h4>
+                              <p className="text-gray-600 flex items-center">
+                                <MapPin className="w-4 h-4 mr-1" />
+                                {listing.location}
+                              </p>
                             </div>
-                            <div className="text-sm text-gray-500">/month</div>
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-emerald-600">
+                                ${listing.price}
+                              </div>
+                              <div className="text-sm text-gray-500">/month</div>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
-                          <span className="flex items-center">
-                            <Bed className="w-4 h-4 mr-1" />
-                            {listing.beds} bed{listing.beds !== 1 ? 's' : ''}
-                          </span>
-                          <span className="flex items-center">
-                            <Bath className="w-4 h-4 mr-1" />
-                            {listing.baths} bath{listing.baths !== 1 ? 's' : ''}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <Avatar className="w-6 h-6">
-                              <AvatarFallback>
-                                {listing.user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-sm text-gray-600">
-                              {listing.user?.name || 'User'}
+                          <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
+                            <span className="flex items-center">
+                              <Bed className="w-4 h-4 mr-1" />
+                              {listing.bedrooms === "studio"
+                                ? "Studio"
+                                : `${listing.bedrooms} bed`}
                             </span>
-                          </div>
-                          <div className="flex items-center">
-                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                            <span className="text-sm text-gray-600 ml-1">
-                              {(Math.random() * 2 + 3).toFixed(1)}
+                            <span className="flex items-center">
+                              <Bath className="w-4 h-4 mr-1" />
+                              {listing.bathrooms} bath
                             </span>
+                            <span className="capitalize">{listing.listingType}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <Avatar className="w-6 h-6">
+                                <AvatarFallback>
+                                  {listing.user.name
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")
+                                    .toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-sm text-gray-600">
+                                {listing.user.name}
+                              </span>
+                            </div>
+                            <div className="flex items-center">
+                              <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                              <span className="text-sm text-gray-600 ml-1">
+                                {(4.5 + Math.random() * 0.5).toFixed(1)}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                      </Link>
+                    </CardContent>
+                  </Card>
                 );
               })}
             </div>
           ) : (
             <div className="text-center py-12">
               <Home className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">No listings yet</h3>
-              <p className="text-gray-500">Be the first to create a listing!</p>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                No listings available
+              </h3>
+              <p className="text-gray-500">
+                Check back later for new listings!
+              </p>
             </div>
           )}
           <div className="text-center mt-12">
@@ -296,10 +354,29 @@ export default function HomePage() {
             </h3>{" "}
           </div>{" "}
           <div className="max-w-6xl mx-auto">
-            <InteractiveMap
-              height="450px"
-              className="rounded-xl overflow-hidden shadow-2xl"
-            />
+            {loading ? (
+              <div className="h-[450px] bg-gray-100 rounded-xl flex items-center justify-center">
+                <div className="text-gray-500">Loading map...</div>
+              </div>
+            ) : (
+              <InteractiveMap
+                height="450px"
+                className="rounded-xl overflow-hidden shadow-2xl"
+                listings={listingsWithCoordinates.map((listing) => ({
+                  id: listing.id,
+                  position: [
+                    listing.coordinates!.lat,
+                    listing.coordinates!.lng,
+                  ] as [number, number],
+                  title: listing.title,
+                  price: `$${listing.price}/month`,
+                  description: listing.description,
+                  listingUrl: `/listings/browse/${listing.id}`,
+                  rating: undefined,
+                  distance: undefined,
+                }))}
+              />
+            )}
           </div>
         </div>
       </section>{" "}

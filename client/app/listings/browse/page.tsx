@@ -68,6 +68,7 @@ export default function ListingsPage() {
     startDate: '',
     endDate: '',
     bedrooms: '',
+    propertyType: '', // Add this line
     petsAllowed: false,
     laundryInBuilding: false,
     parkingAvailable: false,
@@ -116,7 +117,7 @@ export default function ListingsPage() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      
+
       // Check if searchTerm comes from URL location parameter
       const locationParam = searchParams.get('location');
       if (locationParam) {
@@ -344,6 +345,27 @@ export default function ListingsPage() {
                 <div className="grid grid-cols-2 gap-2">
                   <Input value={filters.minPrice} placeholder="Min" type="number" onChange={e => handleFilterChange('minPrice', e.target.value)} />
                   <Input value={filters.maxPrice} placeholder="Max" type="number" onChange={e => handleFilterChange('maxPrice', e.target.value)} />
+                </div>
+              </div>
+
+              {/* Property Type */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Property Type
+                </label>
+                <div className="relative">
+                  <select
+                    value={filters.propertyType}
+                    onChange={(e) =>
+                      handleFilterChange("propertyType", e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none bg-white"
+                  >
+                    <option value="">All Types</option>
+                    <option value="house">House</option>
+                    <option value="apartment">Apartment</option>
+                  </select>
+                  <Home className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
                 </div>
               </div>
 

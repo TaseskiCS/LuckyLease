@@ -21,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import schoolsData from "@/data/schools.json";
+import toast from "react-hot-toast";
 
 interface School {
   value: string;
@@ -33,55 +34,37 @@ interface Region {
   colleges?: School[];
 }
 
-const allListings = [
-  {
-    id: "1",
-    position: [43.6629, -79.3957] as [number, number], // University of Toronto (St. George)
-    title: "Modern Studio Near UofT",
-    price: 1800,
-    priceDisplay: "$1,800/month",
-    description: "Fully furnished studio apartment perfect for students",
-    distance: "0.2 km from University of Toronto",
-    rating: 4.9,
-    listingUrl: "/listings/1",
-    roomType: "Studio",
-    bedrooms: "studio",
-    bathrooms: "1",
-    university: "University of Toronto",
-    school: "University of Toronto",
-    startDate: "2023-09-01",
-    endDate: "2024-04-30",
-    petsAllowed: false,
-    laundryInBuilding: true,
-    parkingAvailable: false,
-    airConditioning: true,
-  },
-  {
-    id: "2",
-    position: [43.7735, -79.5019] as [number, number], // York University
-    title: "Shared 2BR at York Village",
-    price: 950,
-    priceDisplay: "$950/month",
-    description:
-      "Spacious shared room in a 2-bedroom apartment near York University",
-    distance: "1 km from York University",
-    rating: 4.5,
-    listingUrl: "/listings/2",
-    roomType: "Shared Room",
-    bedrooms: "shared",
-    bathrooms: "1.5",
-    university: "York University",
-    school: "York University",
-    startDate: "2023-09-01",
-    endDate: "2024-04-30",
-    petsAllowed: true,
-    laundryInBuilding: false,
-    parkingAvailable: true,
-    airConditioning: false,
-  },
-];
+interface Listing {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  location: string;
+  startDate: string;
+  endDate: string;
+  imageUrls: string[];
+  coordinates?: { lat: number; lng: number };
+  contactMethod: "email" | "in_app" | "sms";
+  bedrooms: string;
+  bathrooms: string;
+  petsAllowed: boolean;
+  laundryInBuilding: boolean;
+  parkingAvailable: boolean;
+  airConditioning: boolean;
+  school?: string;
+  listingType: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
 
 export default function MapPage() {
+  const [allListings, setAllListings] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     searchTerm: "",
     minPrice: "",
@@ -100,6 +83,51 @@ export default function MapPage() {
 
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
+  // Fetch listings from API
+  useEffect(() => {
+    fetchListings();
+  }, []);
+
+  const fetchListings = async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (filters.searchTerm) params.append("search", filters.searchTerm);
+      if (filters.minPrice) params.append("minPrice", filters.minPrice);
+      if (filters.maxPrice) params.append("maxPrice", filters.maxPrice);
+      if (filters.availableFrom)
+        params.append("startDate", filters.availableFrom);
+      if (filters.availableUntil)
+        params.append("endDate", filters.availableUntil);
+      if (filters.propertyType)
+        params.append("listingType", filters.propertyType);
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/listings?${params}`
+      );
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to fetch listings");
+      }
+
+      // Filter out listings without valid coordinates
+      const listingsWithCoordinates = (data.listings || []).filter(
+        (listing: Listing) =>
+          listing.coordinates &&
+          listing.coordinates.lat &&
+          listing.coordinates.lng
+      );
+
+      setAllListings(listingsWithCoordinates);
+    } catch (error) {
+      toast.error("Failed to load listings for map");
+      console.error("Error fetching listings:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Filter listings based on current filters
   const filteredListings = useMemo(() => {
     return allListings.filter((listing) => {
@@ -110,31 +138,26 @@ export default function MapPage() {
         const descriptionMatch = listing.description
           .toLowerCase()
           .includes(searchLower);
-        const universityMatch = listing.university
+        const locationMatch = listing.location
           .toLowerCase()
           .includes(searchLower);
-        if (!titleMatch && !descriptionMatch && !universityMatch) return false;
+        const schoolMatch = listing.school?.toLowerCase().includes(searchLower);
+        if (!titleMatch && !descriptionMatch && !locationMatch && !schoolMatch)
+          return false;
       }
 
       // Price range filters
       if (filters.minPrice && listing.price < parseInt(filters.minPrice))
         return false;
       if (filters.maxPrice && listing.price > parseInt(filters.maxPrice))
-        return false; // Location filter - removed since we have search and school filter
+        return false;
 
       // Property type filter
-      if (filters.propertyType) {
-        const typeMapping: { [key: string]: string[] } = {
-          studio: ["Studio", "studio"],
-          shared: ["Shared"],
-          private: ["1BR", "Apartment", "1", "2", "3", "4", "5+"],
-          apartment: ["Loft", "Condo", "Apartment", "Residence"],
-        };
-        if (
-          !typeMapping[filters.propertyType]?.includes(listing.roomType) &&
-          !typeMapping[filters.propertyType]?.includes(listing.bedrooms)
-        )
-          return false;
+      if (
+        filters.propertyType &&
+        filters.propertyType !== listing.listingType
+      ) {
+        return false;
       }
 
       // Bedrooms filter
@@ -145,12 +168,10 @@ export default function MapPage() {
       // Bathrooms filter
       if (filters.bathrooms && filters.bathrooms !== listing.bathrooms) {
         return false;
-      } // University filter - removed since we have school filter
-
-      // School filter
+      } // School filter
       if (filters.school && listing.school !== filters.school) {
         return false;
-      } // Rating filter - removed since we simplified the filters
+      }
 
       // Date range filters
       if (filters.availableFrom) {
@@ -172,7 +193,7 @@ export default function MapPage() {
       if (filters.airConditioning && !listing.airConditioning) return false;
       return true;
     });
-  }, [filters]);
+  }, [allListings, filters]);
   const handleFilterChange = (
     key: string,
     value: string | number | boolean
@@ -181,6 +202,10 @@ export default function MapPage() {
       ...prev,
       [key]: value,
     }));
+  };
+
+  const handleSearch = () => {
+    fetchListings();
   };
   const clearFilters = () => {
     setFilters({
@@ -572,21 +597,31 @@ export default function MapPage() {
         )}{" "}
         {/* Map Container */}
         <div className="flex-1 relative w-full min-h-0 overflow-hidden">
-          <InteractiveMap
-            height="100%"
-            className="w-full h-full"
-            fullScreen={true}
-            listings={filteredListings.map((listing) => ({
-              id: listing.id,
-              position: listing.position,
-              title: listing.title,
-              price: listing.priceDisplay,
-              description: listing.description,
-              listingUrl: listing.listingUrl,
-              rating: listing.rating,
-              distance: listing.distance,
-            }))}
-          />
+          {loading ? (
+            <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center">
+              <div className="text-gray-500">Loading listings...</div>
+            </div>
+          ) : (
+            <InteractiveMap
+              height="100%"
+              className="w-full h-full"
+              fullScreen={true}
+              listings={filteredListings.map((listing) => ({
+                id: listing.id,
+                position: [
+                  listing.coordinates!.lat,
+                  listing.coordinates!.lng,
+                ] as [number, number],
+                title: listing.title,
+                price: `$${listing.price}/month`,
+                description: listing.description,
+                listingUrl: `/listings/browse/${listing.id}`,
+                // Note: rating and distance would need to be calculated or stored in the database
+                rating: undefined,
+                distance: undefined,
+              }))}
+            />
+          )}
         </div>
       </div>
     </div>

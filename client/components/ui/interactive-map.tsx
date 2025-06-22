@@ -38,36 +38,55 @@ export function InteractiveMap({
   fullScreen = false,
   listings = [],
 }: InteractiveMapProps) {
-  // GTA map centered on Toronto
-  const mapCenter: [number, number] = [43.6532, -79.3832]; // Downtown Toronto
-  const mapZoom = 11;
-  // GTA test listings with various universities and locations
-  const sampleListings = [
-    {
-      id: "1",
-      position: [43.6629, -79.3957] as [number, number], // University of Toronto (St. George)
-      title: "Modern Studio Near UofT",
-      price: "$1,800/month",
-      description: "Fully furnished studio apartment perfect for students",
-      distance: "0.2 km from University of Toronto",
-      rating: 4.9,
-      listingUrl: "/listings/1",
-    },
-    {
-      id: "2",
-      position: [43.7735, -79.5019] as [number, number], // York University
-      title: "Shared 2BR at York Village",
-      price: "$950/month",
-      description: "Spacious room in a shared apartment with great amenities",
-      distance: "0.1 km from York University",
-      rating: 4.7,
-      listingUrl: "/listings/2",
-    },
-  ];
+  // Calculate map center and zoom based on listings
+  const getMapCenterAndZoom = (): {
+    center: [number, number];
+    zoom: number;
+  } => {
+    if (listings.length === 0) {
+      // Default to North America view when no listings
+      return { center: [45.0, -100.0], zoom: 4 };
+    }
 
-  const allListings = [...sampleListings, ...listings];
+    if (listings.length === 1) {
+      // Single listing - center on it with moderate zoom
+      return { center: listings[0].position, zoom: 12 };
+    }
 
-  const markers = allListings.map((listing) => ({
+    // Calculate bounding box for multiple listings
+    const lats = listings.map((listing) => listing.position[0]);
+    const lngs = listings.map((listing) => listing.position[1]);
+
+    const minLat = Math.min(...lats);
+    const maxLat = Math.max(...lats);
+    const minLng = Math.min(...lngs);
+    const maxLng = Math.max(...lngs);
+
+    // Calculate center
+    const centerLat = (minLat + maxLat) / 2;
+    const centerLng = (minLng + maxLng) / 2;
+
+    // Calculate zoom level based on the span
+    const latSpan = maxLat - minLat;
+    const lngSpan = maxLng - minLng;
+    const maxSpan = Math.max(latSpan, lngSpan);
+
+    // Determine zoom level based on span (with some padding)
+    let zoom = 10; // Default zoom
+    if (maxSpan > 20) zoom = 4; // Very wide spread
+    else if (maxSpan > 10) zoom = 5; // Wide spread
+    else if (maxSpan > 5) zoom = 6; // Large spread
+    else if (maxSpan > 2) zoom = 7; // Medium spread
+    else if (maxSpan > 1) zoom = 8; // Small spread
+    else if (maxSpan > 0.5) zoom = 9; // Very small spread
+    else zoom = 10; // Tight clustering
+
+    return { center: [centerLat, centerLng] as [number, number], zoom };
+  };
+
+  const { center: mapCenter, zoom: mapZoom } = getMapCenterAndZoom();
+
+  const markers = listings.map((listing) => ({
     position: listing.position,
     title: listing.title,
     price: listing.price,
