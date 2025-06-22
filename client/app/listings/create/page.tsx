@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
-import { 
-  Home, 
-  Upload, 
-  MapPin, 
-  DollarSign, 
-  Calendar, 
-  FileText, 
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { toast } from "react-hot-toast";
+import {
+  Home,
+  Upload,
+  MapPin,
+  DollarSign,
+  Calendar,
+  FileText,
   Phone,
   MessageCircle,
   ArrowLeft,
@@ -23,13 +23,13 @@ import {
   Bath,
   Car,
   Shirt,
-  Wind
-} from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import schoolsData from '@/data/schools.json';
+  Wind,
+} from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import schoolsData from "@/data/schools.json";
 
 interface School {
   value: string;
@@ -51,7 +51,7 @@ interface ListingFormData {
   bathrooms: string;
   startDate: string;
   endDate: string;
-  contactMethod: 'email' | 'in_app' | 'sms';
+  contactMethod: "email" | "in_app" | "sms";
   school?: string;
   petsAllowed: boolean;
   laundryInBuilding: boolean;
@@ -64,20 +64,32 @@ export default function CreateListingPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string[]>([]);
-  
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   const {
     register,
     handleSubmit,
     formState: { errors },
-    setValue
+    setValue,
   } = useForm<ListingFormData>();
+
+  // Check authentication on page load
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please log in to create a listing");
+      router.push("/auth/login");
+      return;
+    }
+    setIsAuthenticated(true);
+  }, [router]);
 
   // Handle image preview
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
       const previews: string[] = [];
-      Array.from(files).forEach(file => {
+      Array.from(files).forEach((file) => {
         const reader = new FileReader();
         reader.onload = (event) => {
           if (event.target?.result) {
@@ -93,59 +105,96 @@ export default function CreateListingPage() {
   };
 
   const removeImage = (indexToRemove: number) => {
-    setImagePreview(prev => prev.filter((_, index) => index !== indexToRemove));
+    setImagePreview((prev) =>
+      prev.filter((_, index) => index !== indexToRemove)
+    );
   };
 
   const onSubmit = async (data: ListingFormData) => {
     try {
       setIsSubmitting(true);
-      
-      const formData = new FormData();
-      formData.append('title', data.title);
-      formData.append('description', data.description);
-      formData.append('price', data.price.toString());
-      formData.append('location', data.location);
-      formData.append('bedrooms', data.bedrooms);
-      formData.append('bathrooms', data.bathrooms);
-      formData.append('startDate', data.startDate);
-      formData.append('endDate', data.endDate);
-      formData.append('contactMethod', data.contactMethod || 'email');
-      if (data.school) {
-        formData.append('school', data.school);
+
+      // Check authentication before proceeding
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("Please log in to create a listing");
+        router.push("/auth/login");
+        return;
       }
-      formData.append('petsAllowed', (data.petsAllowed || false).toString());
-      formData.append('laundryInBuilding', (data.laundryInBuilding || false).toString());
-      formData.append('parkingAvailable', (data.parkingAvailable || false).toString());
-      formData.append('airConditioning', (data.airConditioning || false).toString());
-      
+
+      const formData = new FormData();
+      formData.append("title", data.title);
+      formData.append("description", data.description);
+      formData.append("price", data.price.toString());
+      formData.append("location", data.location);
+      formData.append("bedrooms", data.bedrooms);
+      formData.append("bathrooms", data.bathrooms);
+      formData.append("startDate", data.startDate);
+      formData.append("endDate", data.endDate);
+      formData.append("contactMethod", data.contactMethod || "email");
+      if (data.school) {
+        formData.append("school", data.school);
+      }
+      formData.append("petsAllowed", (data.petsAllowed || false).toString());
+      formData.append(
+        "laundryInBuilding",
+        (data.laundryInBuilding || false).toString()
+      );
+      formData.append(
+        "parkingAvailable",
+        (data.parkingAvailable || false).toString()
+      );
+      formData.append(
+        "airConditioning",
+        (data.airConditioning || false).toString()
+      );
+
       // Add images
       if (data.images) {
-        Array.from(data.images).forEach(file => {
-          formData.append('images', file);
+        Array.from(data.images).forEach((file) => {
+          formData.append("images", file);
         });
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/listings`, {
-        method: 'POST',
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const response = await fetch(`${apiUrl}/api/listings`, {
+        method: "POST",
         body: formData,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
-
       if (response.ok) {
-        toast.success('Listing created successfully!');
-        router.push('/listings/browse');
+        toast.success("Listing created successfully!");
+        router.push("/dashboard?tab=listings");
+      } else if (response.status === 401 || response.status === 403) {
+        // Authentication failed - token might be expired
+        localStorage.removeItem("token");
+        toast.error("Your session has expired. Please log in again.");
+        router.push("/auth/login");
       } else {
-        throw new Error('Failed to create listing');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to create listing");
       }
     } catch (error) {
-      console.error('Error creating listing:', error);
-      toast.error('Failed to create listing. Please try again.');
+      console.error("Error creating listing:", error);
+      toast.error("Failed to create listing. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Show loading while checking authentication
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50">
@@ -154,15 +203,22 @@ export default function CreateListingPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center space-x-4">
             <Link href="/listings/browse">
-              <Button variant="ghost" className="flex items-center space-x-2 text-gray-600 hover:text-emerald-600">
+              <Button
+                variant="ghost"
+                className="flex items-center space-x-2 text-gray-600 hover:text-emerald-600"
+              >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back to Listings</span>
               </Button>
             </Link>
             <div className="h-8 w-px bg-gray-300"></div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Create New Listing</h1>
-              <p className="text-gray-600">Share your space with the community</p>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Create New Listing
+              </h1>
+              <p className="text-gray-600">
+                Share your space with the community
+              </p>
             </div>
           </div>
         </div>
@@ -181,7 +237,8 @@ export default function CreateListingPage() {
                   List Your Property
                 </h2>
                 <p className="text-gray-600 max-w-2xl mx-auto">
-                  Create a compelling listing to attract the perfect tenant for your space
+                  Create a compelling listing to attract the perfect tenant for
+                  your space
                 </p>
               </div>
 
@@ -192,19 +249,27 @@ export default function CreateListingPage() {
                     <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
                       <FileText className="w-4 h-4 text-emerald-600" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900">Basic Information</h3>
+                    <h3 className="text-xl font-semibold text-gray-900">
+                      Basic Information
+                    </h3>
                   </div>
-                  
+
                   {/* Title */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
                       Listing Title *
                     </label>
                     <Input
-                      {...register('title', { 
-                        required: 'Title is required',
-                        minLength: { value: 5, message: 'Title must be at least 5 characters' },
-                        maxLength: { value: 100, message: 'Title cannot exceed 100 characters' }
+                      {...register("title", {
+                        required: "Title is required",
+                        minLength: {
+                          value: 5,
+                          message: "Title must be at least 5 characters",
+                        },
+                        maxLength: {
+                          value: 100,
+                          message: "Title cannot exceed 100 characters",
+                        },
                       })}
                       className="h-12 text-md"
                       placeholder="e.g., Cozy Studio Near Campus - Perfect for Students"
@@ -224,10 +289,16 @@ export default function CreateListingPage() {
                     </label>
                     <textarea
                       rows={5}
-                      {...register('description', { 
-                        required: 'Description is required',
-                        minLength: { value: 20, message: 'Description must be at least 20 characters' },
-                        maxLength: { value: 1000, message: 'Description cannot exceed 1000 characters' }
+                      {...register("description", {
+                        required: "Description is required",
+                        minLength: {
+                          value: 20,
+                          message: "Description must be at least 20 characters",
+                        },
+                        maxLength: {
+                          value: 1000,
+                          message: "Description cannot exceed 1000 characters",
+                        },
                       })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none text-md"
                       placeholder="Describe your space, amenities, neighborhood, and what makes it special..."
@@ -247,9 +318,11 @@ export default function CreateListingPage() {
                     <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
                       <MapPin className="w-4 h-4 text-emerald-600" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900">Location & Pricing</h3>
+                    <h3 className="text-xl font-semibold text-gray-900">
+                      Location & Pricing
+                    </h3>
                   </div>
-                  
+
                   <div className="grid md:grid-cols-2 gap-6">
                     {/* School Selection */}
                     <div>
@@ -258,46 +331,86 @@ export default function CreateListingPage() {
                       </label>
                       <div className="relative">
                         <select
-                          {...register('school')}
+                          {...register("school")}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none bg-white h-12 text-md"
                         >
                           <option value="">Select a school</option>
-                          
+
                           {/* Canadian Schools */}
-                          {Object.entries(schoolsData.canada).map(([regionKey, region]) => (
-                            <optgroup key={`canada-${regionKey}`} label={`🇨🇦 ${(region as Region).label}`}>
-                              {(region as Region).universities?.map((school: School) => (
-                                <option key={school.value} value={school.value}>
-                                  {school.name}
-                                </option>
-                              ))}
-                              {(region as Region).colleges?.map((school: School) => (
-                                <option key={school.value} value={school.value}>
-                                  {school.name}
-                                </option>
-                              ))}
-                            </optgroup>
-                          ))}
-                          
+                          {Object.entries(schoolsData.canada).map(
+                            ([regionKey, region]) => (
+                              <optgroup
+                                key={`canada-${regionKey}`}
+                                label={`🇨🇦 ${(region as Region).label}`}
+                              >
+                                {(region as Region).universities?.map(
+                                  (school: School) => (
+                                    <option
+                                      key={school.value}
+                                      value={school.value}
+                                    >
+                                      {school.name}
+                                    </option>
+                                  )
+                                )}
+                                {(region as Region).colleges?.map(
+                                  (school: School) => (
+                                    <option
+                                      key={school.value}
+                                      value={school.value}
+                                    >
+                                      {school.name}
+                                    </option>
+                                  )
+                                )}
+                              </optgroup>
+                            )
+                          )}
+
                           {/* American Schools */}
-                          {Object.entries(schoolsData.usa).map(([stateKey, state]) => (
-                            <optgroup key={`usa-${stateKey}`} label={`🇺🇸 ${(state as Region).label}`}>
-                              {(state as Region).universities?.map((school: School) => (
-                                <option key={school.value} value={school.value}>
-                                  {school.name}
-                                </option>
-                              ))}
-                              {(state as Region).colleges?.map((school: School) => (
-                                <option key={school.value} value={school.value}>
-                                  {school.name}
-                                </option>
-                              ))}
-                            </optgroup>
-                          ))}
+                          {Object.entries(schoolsData.usa).map(
+                            ([stateKey, state]) => (
+                              <optgroup
+                                key={`usa-${stateKey}`}
+                                label={`🇺🇸 ${(state as Region).label}`}
+                              >
+                                {(state as Region).universities?.map(
+                                  (school: School) => (
+                                    <option
+                                      key={school.value}
+                                      value={school.value}
+                                    >
+                                      {school.name}
+                                    </option>
+                                  )
+                                )}
+                                {(state as Region).colleges?.map(
+                                  (school: School) => (
+                                    <option
+                                      key={school.value}
+                                      value={school.value}
+                                    >
+                                      {school.name}
+                                    </option>
+                                  )
+                                )}
+                              </optgroup>
+                            )
+                          )}
                         </select>
                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          <svg
+                            className="w-5 h-5 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 9l-7 7-7-7"
+                            />
                           </svg>
                         </div>
                       </div>
@@ -311,10 +424,16 @@ export default function CreateListingPage() {
                       <div className="relative">
                         <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                         <Input
-                          {...register('location', { 
-                            required: 'Location is required',
-                            minLength: { value: 2, message: 'Location must be at least 2 characters' },
-                            maxLength: { value: 100, message: 'Location cannot exceed 100 characters' }
+                          {...register("location", {
+                            required: "Location is required",
+                            minLength: {
+                              value: 2,
+                              message: "Location must be at least 2 characters",
+                            },
+                            maxLength: {
+                              value: 100,
+                              message: "Location cannot exceed 100 characters",
+                            },
                           })}
                           className="pl-11 h-12 text-md"
                           placeholder="e.g., 123 Clover Ave, Waterloo, ON"
@@ -339,9 +458,12 @@ export default function CreateListingPage() {
                           type="number"
                           step="0.01"
                           min="0"
-                          {...register('price', { 
-                            required: 'Price is required',
-                            min: { value: 0, message: 'Price must be greater than 0' }
+                          {...register("price", {
+                            required: "Price is required",
+                            min: {
+                              value: 0,
+                              message: "Price must be greater than 0",
+                            },
                           })}
                           className="pl-11 h-12 text-md"
                           placeholder="e.g., 1200.00"
@@ -365,7 +487,9 @@ export default function CreateListingPage() {
                       <div className="relative">
                         <Bed className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                         <select
-                          {...register('bedrooms', { required: 'Please select number of bedrooms' })}
+                          {...register("bedrooms", {
+                            required: "Please select number of bedrooms",
+                          })}
                           className="w-full pl-11 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none bg-white h-12 text-mds"
                         >
                           <option value="">Select</option>
@@ -394,7 +518,9 @@ export default function CreateListingPage() {
                       <div className="relative">
                         <Bath className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                         <select
-                          {...register('bathrooms', { required: 'Please select number of bathrooms' })}
+                          {...register("bathrooms", {
+                            required: "Please select number of bathrooms",
+                          })}
                           className="w-full pl-11 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none bg-white h-12 text-md"
                         >
                           <option value="">Select</option>
@@ -424,9 +550,11 @@ export default function CreateListingPage() {
                     <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
                       <Calendar className="w-4 h-4 text-emerald-600" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900">Availability Period</h3>
+                    <h3 className="text-xl font-semibold text-gray-900">
+                      Availability Period
+                    </h3>
                   </div>
-                  
+
                   <div className="grid md:grid-cols-2 gap-6">
                     {/* Start Date */}
                     <div>
@@ -435,7 +563,9 @@ export default function CreateListingPage() {
                       </label>
                       <Input
                         type="date"
-                        {...register('startDate', { required: 'Start date is required' })}
+                        {...register("startDate", {
+                          required: "Start date is required",
+                        })}
                         className="h-12 text-md"
                       />
                       {errors.startDate && (
@@ -453,7 +583,9 @@ export default function CreateListingPage() {
                       </label>
                       <Input
                         type="date"
-                        {...register('endDate', { required: 'End date is required' })}
+                        {...register("endDate", {
+                          required: "End date is required",
+                        })}
                         className="h-12 text-md"
                       />
                       {errors.endDate && (
@@ -472,24 +604,30 @@ export default function CreateListingPage() {
                     <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
                       <Home className="w-4 h-4 text-emerald-600" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900">Amenities & Policies</h3>
+                    <h3 className="text-xl font-semibold text-gray-900">
+                      Amenities & Policies
+                    </h3>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Pets Allowed */}
                     <div className="bg-gray-50 rounded-lg p-4">
                       <label className="flex items-start space-x-3 cursor-pointer">
                         <input
                           type="checkbox"
-                          {...register('petsAllowed')}
+                          {...register("petsAllowed")}
                           className="w-5 h-5 text-emerald-600 border-2 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2 mt-1"
                         />
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-1">
                             <span className="text-md">🐾</span>
-                            <span className="text-md font-semibold text-gray-900">Pets Allowed</span>
+                            <span className="text-md font-semibold text-gray-900">
+                              Pets Allowed
+                            </span>
                           </div>
-                          <p className="text-sm text-gray-500">Pets are welcome in this space</p>
+                          <p className="text-sm text-gray-500">
+                            Pets are welcome in this space
+                          </p>
                         </div>
                       </label>
                     </div>
@@ -499,15 +637,19 @@ export default function CreateListingPage() {
                       <label className="flex items-start space-x-3 cursor-pointer">
                         <input
                           type="checkbox"
-                          {...register('laundryInBuilding')}
+                          {...register("laundryInBuilding")}
                           className="w-5 h-5 text-emerald-600 border-2 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2 mt-1"
                         />
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-1">
                             <Shirt className="w-4 h-4 text-gray-600" />
-                            <span className="text-md font-semibold text-gray-900">Laundry in Building</span>
+                            <span className="text-md font-semibold text-gray-900">
+                              Laundry in Building
+                            </span>
                           </div>
-                          <p className="text-sm text-gray-500">Washer and dryer available on-site</p>
+                          <p className="text-sm text-gray-500">
+                            Washer and dryer available on-site
+                          </p>
                         </div>
                       </label>
                     </div>
@@ -517,15 +659,19 @@ export default function CreateListingPage() {
                       <label className="flex items-start space-x-3 cursor-pointer">
                         <input
                           type="checkbox"
-                          {...register('parkingAvailable')}
+                          {...register("parkingAvailable")}
                           className="w-5 h-5 text-emerald-600 border-2 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2 mt-1"
                         />
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-1">
                             <Car className="w-4 h-4 text-gray-600" />
-                            <span className="text-md font-semibold text-gray-900">Parking Available</span>
+                            <span className="text-md font-semibold text-gray-900">
+                              Parking Available
+                            </span>
                           </div>
-                          <p className="text-sm text-gray-500">Parking space included or available</p>
+                          <p className="text-sm text-gray-500">
+                            Parking space included or available
+                          </p>
                         </div>
                       </label>
                     </div>
@@ -535,15 +681,19 @@ export default function CreateListingPage() {
                       <label className="flex items-start space-x-3 cursor-pointer">
                         <input
                           type="checkbox"
-                          {...register('airConditioning')}
+                          {...register("airConditioning")}
                           className="w-5 h-5 text-emerald-600 border-2 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2 mt-1"
                         />
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-1">
                             <Wind className="w-4 h-4 text-gray-600" />
-                            <span className="text-md font-semibold text-gray-900">Air Conditioning</span>
+                            <span className="text-md font-semibold text-gray-900">
+                              Air Conditioning
+                            </span>
                           </div>
-                          <p className="text-sm text-gray-500">Climate control and cooling available</p>
+                          <p className="text-sm text-gray-500">
+                            Climate control and cooling available
+                          </p>
                         </div>
                       </label>
                     </div>
@@ -556,9 +706,11 @@ export default function CreateListingPage() {
                     <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
                       <Upload className="w-4 h-4 text-emerald-600" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900">Property Photos</h3>
+                    <h3 className="text-xl font-semibold text-gray-900">
+                      Property Photos
+                    </h3>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
                       Upload Images (Max 10)
@@ -579,13 +731,13 @@ export default function CreateListingPage() {
                           type="file"
                           multiple
                           accept="image/*"
-                          {...register('images')}
+                          {...register("images")}
                           onChange={handleImageChange}
                           className="hidden"
                         />
                       </div>
                     </div>
-                    
+
                     {/* Image Preview */}
                     {imagePreview.length > 0 && (
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
@@ -610,14 +762,12 @@ export default function CreateListingPage() {
                   </div>
                 </div>
 
-               
-
                 {/* Submit Button */}
                 <div className="flex justify-center pt-8">
                   <div className="flex space-x-4">
                     <Link href="/listings/browse">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="px-8 py-3 h-12 border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
                       >
                         Cancel
@@ -650,4 +800,3 @@ export default function CreateListingPage() {
     </div>
   );
 }
-
