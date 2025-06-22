@@ -23,8 +23,8 @@ router.get('/listing/:listingId', async (req: Request, res: Response) => {
       .from('messages')
       .select(`
         *,
-        sender:users(id, name, email),
-        receiver:users(id, name, email)
+        sender:users!messages_senderId_fkey(id, name, email),
+        receiver:users!messages_receiverId_fkey(id, name, email)
       `)
       .eq('listingId', listingId)
       .or(`senderId.eq.${userId},receiverId.eq.${userId}`)
@@ -88,8 +88,8 @@ router.post('/', validateMessage, async (req: Request, res: Response) => {
       })
       .select(`
         *,
-        sender:users(id, name, email),
-        receiver:users(id, name, email)
+        sender:users!messages_senderId_fkey(id, name, email),
+        receiver:users!messages_receiverId_fkey(id, name, email)
       `)
       .single();
 
@@ -119,8 +119,8 @@ router.get('/conversations', async (req: Request, res: Response) => {
       .select(`
         *,
         listing:listings(id, title, imageUrls),
-        sender:users(id, name, email),
-        receiver:users(id, name, email)
+        sender:users!messages_senderId_fkey(id, name, email),
+        receiver:users!messages_receiverId_fkey(id, name, email)
       `)
       .or(`senderId.eq.${userId},receiverId.eq.${userId}`)
       .order('timestamp', { ascending: false });

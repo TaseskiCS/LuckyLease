@@ -47,6 +47,12 @@ export default function LoginPage() {
       } // Store token in localStorage (in production, use httpOnly cookies)
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+      
+      // Store user info in the format expected by chat components
+      localStorage.setItem("userInfo", JSON.stringify({
+        id: data.user.id,
+        token: data.token
+      }));
 
       toast.success("Login successful!");
       // Force a page reload to update the header component

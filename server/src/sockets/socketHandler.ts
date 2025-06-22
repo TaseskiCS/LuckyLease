@@ -1,5 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { verifyToken } from '../utils/jwt';
+import { supabase } from '../utils/supabase';
+import cuid from 'cuid';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -45,16 +47,45 @@ export const setupSocketHandlers = (io: Server) => {
     // Handle new message
     socket.on('send-message', async (data) => {
       try {
+        console.log('Received send-message event:', data);
         const { content, receiverId, listingId } = data;
 
-        // Emit to the listing room
-        io.to(`listing:${listingId}`).emit('new-message', {
+        console.log('Saving message to database:', {
           content,
           senderId: socket.userId,
           receiverId,
-          listingId,
-          timestamp: new Date()
+          listingId
         });
+
+        // Save message to database
+        const { data: message, error: createError } = await supabase
+          .from('messages')
+          .insert({
+            id: cuid(),
+            content,
+            senderId: socket.userId,
+            receiverId: receiverId,
+            listingId: listingId,
+            timestamp: new Date()
+          })
+          .select(`
+            *,
+            sender:users!messages_senderId_fkey(id, name, email),
+            receiver:users!messages_receiverId_fkey(id, name, email)
+          `)
+          .single();
+
+        if (createError) {
+          console.error('Database error:', createError);
+          socket.emit('error', { message: 'Failed to save message' });
+          return;
+        }
+
+        console.log('Message saved successfully:', message);
+
+        // Emit to the listing room
+        io.to(`listing:${listingId}`).emit('new-message', message);
+        console.log(`Emitted new-message to listing:${listingId}`);
 
         // Emit to the receiver's personal room for notifications
         io.to(`user:${receiverId}`).emit('message-notification', {
@@ -63,6 +94,7 @@ export const setupSocketHandlers = (io: Server) => {
           listingId,
           timestamp: new Date()
         });
+        console.log(`Emitted message-notification to user:${receiverId}`);
 
       } catch (error) {
         console.error('Error handling message:', error);
