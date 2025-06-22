@@ -1,12 +1,15 @@
-{
-  "name": "roomrelay-server",
+{  "name": "LuckyLease-server",
   "version": "1.0.0",
   "description": "Backend server for RoomRelay sublet marketplace",
   "main": "dist/index.js",
-  "scripts": {
+  "engines": {
+    "node": ">=18.0.0"
+  },"scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "postbuild": "echo 'Build completed, starting server...'",
+    "serve": "npm run build && npm start"
   },
   "dependencies": {
     "@google/generative-ai": "^0.2.1",
