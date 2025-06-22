@@ -282,31 +282,18 @@ export function Chat({ isOpen, onClose, currentUserId, token, initialListingId, 
       console.log('Socket connected:', socket.connected);
       console.log('Current conversation:', selectedConversation.listingId);
 
-      // Send via socket - backend will save to database
+      // Send via socket - backend will save to database and emit back
       socket.emit('send-message', messageData);
 
-      // Optimistically add the message to UI immediately
-      const optimisticMessage = {
-        id: `temp-${Date.now()}`,
-        content: messageData.content,
-        senderId: currentUserId,
-        receiverId: messageData.receiverId,
-        listingId: messageData.listingId,
-        timestamp: new Date()
-      };
-
-      console.log('Adding optimistic message:', optimisticMessage);
-      setMessages(prev => [...prev, optimisticMessage]);
-
-      // Clear input immediately for better UX
+      // Clear input immediately for better UX (but don't add optimistic message)
       setNewMessage('');
       setIsTyping(false);
       if (socket) {
         socket.emit('typing-stop', { listingId: selectedConversation.listingId });
       }
 
-      // Show success feedback
-      toast.success('Message sent!');
+      // Note: We removed the optimistic message to prevent duplicates
+      // The message will appear when the server confirms it via 'new-message' event
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
@@ -415,7 +402,7 @@ export function Chat({ isOpen, onClose, currentUserId, token, initialListingId, 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl h-[80vh] flex">
         {/* Conversations List */}
         <div className="w-1/3 border-r border-gray-200 flex flex-col">
