@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 import toast from 'react-hot-toast';
 
 interface Listing {
@@ -539,9 +540,9 @@ export default function ListingsPage() {
             ) : (
               <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {listings.map((listing, index) => (
-                  <Link key={listing.id} href={`/listings/browse/${listing.id}`}>
-                    <Card className="overflow-hidden hover:shadow-xl transition-all duration-200 cursor-pointer group">
-                      <div className="relative">
+                  <Card key={listing.id} className="overflow-hidden hover:shadow-xl transition-all duration-200 group">
+                    <Link href={`/listings/browse/${listing.id}`}>
+                      <div className="relative cursor-pointer">
                         {listing.imageUrls.length > 0 ? (
                           <img
                             src={listing.imageUrls[0]}
@@ -589,106 +590,113 @@ export default function ListingsPage() {
                           </Badge>
                         )}
                       </div>
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-emerald-600 transition-colors">
-                              {listing.title}
-                            </h4>
-                            <p className="text-gray-600 flex items-center text-sm">
-                              <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
-                              {listing.location}
-                            </p>
-                          </div>
-                          <div className="text-right ml-4">
-                            <div className="text-2xl font-bold text-emerald-600">
-                              ${listing.price}
+                    </Link>
+                    
+                    <CardContent className="p-6">
+                      <Link href={`/listings/browse/${listing.id}`}>
+                        <div className="cursor-pointer">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-emerald-600 transition-colors">
+                                {listing.title}
+                              </h4>
+                              <p className="text-gray-600 flex items-center text-sm">
+                                <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
+                                {listing.location}
+                              </p>
                             </div>
-                            <div className="text-sm text-gray-500">/month</div>
+                            <div className="text-right ml-4">
+                              <div className="text-2xl font-bold text-emerald-600">
+                                ${listing.price}
+                              </div>
+                              <div className="text-sm text-gray-500">/month</div>
+                            </div>
                           </div>
-                        </div>
-                        
-                        <div className="flex items-center text-sm text-gray-600 mb-3">
-                          <Calendar className="w-4 h-4 mr-1" />
-                          <span>
-                            {formatDate(listing.startDate)} - {formatDate(listing.endDate)}
-                          </span>
-                        </div>
+                          
+                          <div className="flex items-center text-sm text-gray-600 mb-3">
+                            <Calendar className="w-4 h-4 mr-1" />
+                            <span>
+                              {formatDate(listing.startDate)} - {formatDate(listing.endDate)}
+                            </span>
+                          </div>
 
-                        {/* Property Details */}
-                        <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                          <span className="flex items-center">
-                            <Bed className="w-4 h-4 mr-1" />
-                            {listing.bedrooms} bed
-                          </span>
-                          <span className="flex items-center">
-                            <Bath className="w-4 h-4 mr-1" />
-                            {listing.bathrooms} bath
-                          </span>
-                          <span className="flex items-center">
-                            {listing.contactMethod === 'email' ? (
-                              <Mail className="w-4 h-4 mr-1" />
-                            ) : listing.contactMethod === 'sms' ? (
-                              <Phone className="w-4 h-4 mr-1" />
-                            ) : (
-                              <MessageCircle className="w-4 h-4 mr-1" />
+                          {/* Property Details */}
+                          <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                            <span className="flex items-center">
+                              <Bed className="w-4 h-4 mr-1" />
+                              {listing.bedrooms} bed
+                            </span>
+                            <span className="flex items-center">
+                              <Bath className="w-4 h-4 mr-1" />
+                              {listing.bathrooms} bath
+                            </span>
+                            <span className="flex items-center">
+                              {listing.contactMethod === 'email' ? (
+                                <Mail className="w-4 h-4 mr-1" />
+                              ) : listing.contactMethod === 'sms' ? (
+                                <Phone className="w-4 h-4 mr-1" />
+                              ) : (
+                                <MessageCircle className="w-4 h-4 mr-1" />
+                              )}
+                              {listing.contactMethod}
+                            </span>
+                          </div>
+
+                          {/* Amenities */}
+                          <div className="flex flex-wrap gap-1 mb-4">
+                            {listing.petsAllowed && (
+                              <Badge variant="secondary" className="text-xs">Pets OK</Badge>
                             )}
-                            {listing.contactMethod}
-                          </span>
-                        </div>
-
-                        {/* Amenities */}
-                        <div className="flex flex-wrap gap-1 mb-4">
-                          {listing.petsAllowed && (
-                            <Badge variant="secondary" className="text-xs">Pets OK</Badge>
-                          )}
-                          {listing.laundryInBuilding && (
-                            <Badge variant="secondary" className="text-xs">Laundry</Badge>
-                          )}
-                          {listing.parkingAvailable && (
-                            <Badge variant="secondary" className="text-xs">Parking</Badge>
-                          )}
-                          {listing.airConditioning && (
-                            <Badge variant="secondary" className="text-xs">AC</Badge>
-                          )}
-                          {listing.tags.slice(0, 2).map((tag, tagIndex) => (
-                            <Badge key={tagIndex} variant="outline" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-
-                        {listing.summary && (
-                          <p className="text-sm text-gray-600 line-clamp-2 mb-4">
-                            {listing.summary}
-                          </p>
-                        )}
-
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <Avatar className="w-6 h-6">
-                              <AvatarFallback className="text-xs">
-                                {listing.user.name.split(' ').map(n => n[0]).join('')}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-sm text-gray-600">{listing.user.name}</span>
+                            {listing.laundryInBuilding && (
+                              <Badge variant="secondary" className="text-xs">Laundry</Badge>
+                            )}
+                            {listing.parkingAvailable && (
+                              <Badge variant="secondary" className="text-xs">Parking</Badge>
+                            )}
+                            {listing.airConditioning && (
+                              <Badge variant="secondary" className="text-xs">AC</Badge>
+                            )}
+                            {listing.tags.slice(0, 2).map((tag, tagIndex) => (
+                              <Badge key={tagIndex} variant="outline" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
                           </div>
-                          <div className="flex items-center space-x-3">
-                            <div className="flex items-center">
-                              <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                              <span className="text-sm text-gray-600 ml-1">
-                                {4.5 + Math.random() * 0.5}
-                              </span>
+
+                          {listing.summary && (
+                            <p className="text-sm text-gray-600 line-clamp-2 mb-4">
+                              {listing.summary}
+                            </p>
+                          )}
+
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center space-x-2">
+                              <Avatar className="w-6 h-6">
+                                <AvatarFallback className="text-xs">
+                                  {listing.user.name.split(' ').map(n => n[0]).join('')}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-sm text-gray-600">{listing.user.name}</span>
                             </div>
-                            <div className="flex items-center text-gray-500">
-                              <Heart className="h-4 w-4 mr-1" />
-                              <span className="text-sm">{listing._count.likes}</span>
+                            <div className="flex items-center space-x-3">
+                              <div className="flex items-center">
+                                <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                                <span className="text-sm text-gray-600 ml-1">
+                                  {(4.5 + Math.random() * 0.5).toFixed(1)}
+                                </span>
+                              </div>
+                              <div className="flex items-center text-gray-500">
+                                <Heart className="h-4 w-4 mr-1" />
+                                <span className="text-sm">{listing._count.likes}</span>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                      </Link>
+
+
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             )}

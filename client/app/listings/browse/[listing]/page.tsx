@@ -34,6 +34,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { LuckyOpinion } from "@/components/ui/lucky-opinion";
 import toast from 'react-hot-toast';
 
 interface Listing {
@@ -490,6 +491,29 @@ The neighborhood is quiet and safe, perfect for focused studying. You'll find gr
                 <div className="text-center text-sm text-gray-500">
                   <p>No booking fees • Secure payment</p>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Lucky Opinion */}
+            <Card className="mb-6">
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-gray-900 mb-4">Need advice?</h3>
+                <LuckyOpinion
+                  listing={{
+                    id: listing.id,
+                    title: listing.title,
+                    description: listing.description,
+                    price: listing.price,
+                    location: listing.location,
+                    bedrooms: listing.bedrooms,
+                    bathrooms: listing.bathrooms,
+                    petsAllowed: listing.petsAllowed,
+                    laundryInBuilding: listing.laundryInBuilding,
+                    parkingAvailable: listing.parkingAvailable,
+                    airConditioning: listing.airConditioning,
+                    school: listing.school
+                  }}
+                />
               </CardContent>
             </Card>
 

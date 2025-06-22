@@ -14,6 +14,7 @@ import messageRoutes from './routes/messages';
 import offerRoutes from './routes/offers';
 import ratingRoutes from './routes/rating';
 import sendEmail from './routes/email';
+import luckyOpinionRoutes from './routes/lucky-opinion';
 
 import { authenticateToken } from './middleware/auth';
 import { setupSocketHandlers } from './sockets/socketHandler';
@@ -24,20 +25,28 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3000/',
+      ...(process.env.CLIENT_URL ? [process.env.CLIENT_URL] : [])
+    ],
     methods: ['GET','POST'],
   },
 });
 
-// ← Change default port here back to 5000
-const PORT = Number(process.env.PORT) || 5000;
+// ← Default port set to 8080
+const PORT = Number(process.env.PORT) || 8080;
 
 // Rate limiting
 const limiter = rateLimit({ windowMs:15*60*1000, max:100 });
 
 app.use(helmet());
 app.use(cors({ 
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3000/',
+    ...(process.env.CLIENT_URL ? [process.env.CLIENT_URL] : [])
+  ],
   credentials: true
 }));
 app.use(limiter);
@@ -53,9 +62,8 @@ app.use('/api/listings', listingRoutes);
 app.use('/api/messages', authenticateToken, messageRoutes);
 app.use('/api/offers', authenticateToken, offerRoutes);
 app.use('/api/rating', ratingRoutes);
-
-// ← Mount your email sender on the same path your React is POSTing to:
 app.use('/api/contact', sendEmail);
+app.use('/api/lucky-opinion', luckyOpinionRoutes);
 
 setupSocketHandlers(io);
 
