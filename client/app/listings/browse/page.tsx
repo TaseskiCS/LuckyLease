@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Filter, MapPin, DollarSign, Calendar, Heart, Plus, Star, Users, Home, Clover, ChevronDown, Bed, Bath, Mail, Phone, MessageCircle } from 'lucide-react';
+import { Search, Filter, MapPin, DollarSign, Calendar, Heart, Plus, Star, Users, Home, Clover, ChevronDown, Bed, Bath, Mail, Phone, MessageCircle, Car, Shirt, Wind } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,18 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import toast from 'react-hot-toast';
+import schoolsData from "@/data/schools.json";
+
+interface School {
+  value: string;
+  name: string;
+}
+
+interface Region {
+  label: string;
+  universities?: School[];
+  colleges?: School[];
+}
 
 interface Listing {
   id: string;
@@ -45,15 +57,19 @@ interface Listing {
 export default function ListingsPage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
+  const [searchTerm, setSearchTerm] = useState('');  const [filters, setFilters] = useState({
     minPrice: '',
     maxPrice: '',
-    location: '',
     startDate: '',
     endDate: '',
     propertyType: '',
-    bedrooms: ''
+    bedrooms: '',
+    bathrooms: '',
+    school: '',
+    petsAllowed: false,
+    laundryInBuilding: false,
+    parkingAvailable: false,
+    airConditioning: false
   });
   const [showFilters, setShowFilters] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -96,14 +112,12 @@ export default function ListingsPage() {
     
     saveFavorites(newFavorites);
   };
-
   const fetchListings = async () => {
     try {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
       if (filters.minPrice) params.append('minPrice', filters.minPrice);
       if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
-      if (filters.location) params.append('location', filters.location);
       if (filters.startDate) params.append('startDate', filters.startDate);
       if (filters.endDate) params.append('endDate', filters.endDate);
 
@@ -126,23 +140,25 @@ export default function ListingsPage() {
   const handleSearch = () => {
     fetchListings();
   };
-
-  const handleFilterChange = (key: string, value: string) => {
+  const handleFilterChange = (key: string, value: string | boolean) => {
     setFilters(prev => ({
       ...prev,
       [key]: value
     }));
-  };
-
-  const clearFilters = () => {
+  };  const clearFilters = () => {
     setFilters({
       minPrice: '',
       maxPrice: '',
-      location: '',
       startDate: '',
       endDate: '',
       propertyType: '',
-      bedrooms: ''
+      bedrooms: '',
+      bathrooms: '',
+      school: '',
+      petsAllowed: false,
+      laundryInBuilding: false,
+      parkingAvailable: false,
+      airConditioning: false
     });
     setSearchTerm('');
   };
@@ -198,9 +214,7 @@ export default function ListingsPage() {
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   />
                 </div>
-              </div>
-
-              {/* Price Range */}
+              </div>              {/* Price Range */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -219,16 +233,6 @@ export default function ListingsPage() {
                 </div>
               </div>
 
-              {/* Location */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                <Input
-                  placeholder="City, neighborhood..."
-                  value={filters.location}
-                  onChange={(e) => handleFilterChange('location', e.target.value)}
-                />
-              </div>
-
               {/* Property Type */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
@@ -244,7 +248,7 @@ export default function ListingsPage() {
                     <option value="private">Private Room</option>
                     <option value="apartment">Full Apartment</option>
                   </select>
-                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
+                  <Home className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
                 </div>
               </div>
 
@@ -258,66 +262,181 @@ export default function ListingsPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none bg-white"
                   >
                     <option value="">Any</option>
+                    <option value="studio">Studio</option>
                     <option value="1">1 Bedroom</option>
                     <option value="2">2 Bedrooms</option>
-                    <option value="3">3+ Bedrooms</option>
+                    <option value="3">3 Bedrooms</option>
+                    <option value="4">4 Bedrooms</option>
+                    <option value="5+">5+ Bedrooms</option>
+                  </select>
+                  <Bed className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Bathrooms */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Bathrooms</label>
+                <div className="relative">
+                  <select
+                    value={filters.bathrooms}
+                    onChange={(e) => handleFilterChange('bathrooms', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none bg-white"
+                  >
+                    <option value="">Any</option>
+                    <option value="1">1 Bathroom</option>
+                    <option value="1.5">1.5 Bathrooms</option>
+                    <option value="2">2 Bathrooms</option>
+                    <option value="2.5">2.5 Bathrooms</option>
+                    <option value="3">3 Bathrooms</option>
+                    <option value="3.5">3.5 Bathrooms</option>
+                    <option value="4+">4+ Bathrooms</option>
+                  </select>
+                  <Bath className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* School/Institution */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Nearest School/Institution</label>
+                <div className="relative">
+                  <select
+                    value={filters.school}
+                    onChange={(e) => handleFilterChange('school', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none bg-white"
+                  >
+                    <option value="">Select a school</option>
+
+                    {/* Canadian Schools */}
+                    {Object.entries(schoolsData.canada).map(
+                      ([regionKey, region]) => (
+                        <optgroup
+                          key={`canada-${regionKey}`}
+                          label={`🇨🇦 ${(region as Region).label}`}
+                        >
+                          {(region as Region).universities?.map(
+                            (school: School) => (
+                              <option key={school.value} value={school.value}>
+                                {school.name}
+                              </option>
+                            )
+                          )}
+                          {(region as Region).colleges?.map((school: School) => (
+                            <option key={school.value} value={school.value}>
+                              {school.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )
+                    )}
+
+                    {/* American Schools */}
+                    {Object.entries(schoolsData.usa).map(([stateKey, state]) => (
+                      <optgroup
+                        key={`usa-${stateKey}`}
+                        label={`🇺🇸 ${(state as Region).label}`}
+                      >
+                        {(state as Region).universities?.map((school: School) => (
+                          <option key={school.value} value={school.value}>
+                            {school.name}
+                          </option>
+                        ))}
+                        {(state as Region).colleges?.map((school: School) => (
+                          <option key={school.value} value={school.value}>
+                            {school.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
                 </div>
-              </div>
-
-              {/* Amenities */}
+              </div>              {/* Amenities */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Amenities</label>
-                <div className="space-y-2">
-                  <label className="flex items-center">
+                <label className="block text-sm font-medium text-gray-700 mb-3">Amenities</label>
+                <div className="space-y-3">
+                  <label className="flex items-center space-x-3 cursor-pointer">
                     <input
                       type="checkbox"
-                      className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                      checked={filters.petsAllowed}
+                      onChange={(e) => handleFilterChange('petsAllowed', e.target.checked)}
+                      className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
                     />
-                    <span className="ml-2 text-sm text-gray-700">Pets Allowed</span>
+                    <span className="text-sm text-gray-700">🐾 Pets Allowed</span>
                   </label>
-                  <label className="flex items-center">
+
+                  <label className="flex items-center space-x-3 cursor-pointer">
                     <input
                       type="checkbox"
-                      className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                      checked={filters.laundryInBuilding}
+                      onChange={(e) => handleFilterChange('laundryInBuilding', e.target.checked)}
+                      className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
                     />
-                    <span className="ml-2 text-sm text-gray-700">Laundry in Building</span>
+                    <div className="flex items-center space-x-2">
+                      <Shirt className="w-4 h-4 text-gray-600" />
+                      <span className="text-sm text-gray-700">Laundry in Building</span>
+                    </div>
                   </label>
-                  <label className="flex items-center">
+
+                  <label className="flex items-center space-x-3 cursor-pointer">
                     <input
                       type="checkbox"
-                      className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                      checked={filters.parkingAvailable}
+                      onChange={(e) => handleFilterChange('parkingAvailable', e.target.checked)}
+                      className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
                     />
-                    <span className="ml-2 text-sm text-gray-700">Parking Available</span>
+                    <div className="flex items-center space-x-2">
+                      <Car className="w-4 h-4 text-gray-600" />
+                      <span className="text-sm text-gray-700">Parking Available</span>
+                    </div>
                   </label>
-                  <label className="flex items-center">
+
+                  <label className="flex items-center space-x-3 cursor-pointer">
                     <input
                       type="checkbox"
-                      className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                      checked={filters.airConditioning}
+                      onChange={(e) => handleFilterChange('airConditioning', e.target.checked)}
+                      className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
                     />
-                    <span className="ml-2 text-sm text-gray-700">Air Conditioning</span>
+                    <div className="flex items-center space-x-2">
+                      <Wind className="w-4 h-4 text-gray-600" />
+                      <span className="text-sm text-gray-700">Air Conditioning</span>
+                    </div>
                   </label>
                 </div>
-              </div>
-
-              {/* Move-in Dates */}
+              </div>              {/* Availability Period */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Move-in Period</label>
-                <div className="space-y-2">
-                  <Input
-                    type="date"
-                    placeholder="Start Date"
-                    value={filters.startDate}
-                    onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                  />
-                  <Input
-                    type="date"
-                    placeholder="End Date"
-                    value={filters.endDate}
-                    onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                  />
+                <label className="block text-sm font-medium text-gray-700 mb-3">Availability Period</label>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Available From</label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Input
+                        type="date"
+                        value={filters.startDate}
+                        onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Available Until</label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Input
+                        type="date"
+                        value={filters.endDate}
+                        onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
                 </div>
+              </div>              {/* Results Count */}
+              <div className="mb-6 p-3 bg-emerald-50 rounded-lg">
+                <p className="text-sm text-emerald-700 font-medium">
+                  {listings.length} listings found
+                </p>
               </div>
 
               <Button 
