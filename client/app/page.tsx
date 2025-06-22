@@ -59,33 +59,51 @@ interface Listing {
 
 export default function HomePage() {
   const [featuredListings, setFeaturedListings] = useState<Listing[]>([]);
+  const [allListings, setAllListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchCity, setSearchCity] = useState("");
   const router = useRouter();
 
   useEffect(() => {
-    const fetchFeaturedListings = async () => {
+    const fetchListings = async () => {
       try {
-        // Use Spencer's API structure but main's approach for handling response
+        // Fetch all listings (without limit) to show all markers on map
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/listings?limit=3`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/listings`
         );
         const data = await response.json();
 
         if (!response.ok) {
           throw new Error(data.error || "Failed to fetch listings");
         }
-
-        setFeaturedListings(data.listings || []);
+        const listings = data.listings || [];
+        console.log("Fetched listings:", listings.length);
+        console.log(
+          "Listings with coordinates:",
+          listings.filter(
+            (l: Listing) =>
+              l.coordinates && l.coordinates.lat && l.coordinates.lng
+          ).length
+        );
+        console.log(
+          "Sample listing with coordinates:",
+          listings.find(
+            (l: Listing) =>
+              l.coordinates && l.coordinates.lat && l.coordinates.lng
+          )
+        );
+        setAllListings(listings);
+        // Set featured listings to first 3 for the featured section
+        setFeaturedListings(listings.slice(0, 3));
       } catch (error) {
-        console.error("Error fetching featured listings:", error);
+        console.error("Error fetching listings:", error);
         // Don't show error toast on main page, just log it
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFeaturedListings();
+    fetchListings();
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -205,13 +223,8 @@ export default function HomePage() {
             </div>
           ) : featuredListings.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {" "}
               {featuredListings.slice(0, 3).map((listing, index) => {
-                const badgeColors = [
-                  "bg-emerald-600",
-                  "bg-orange-500",
-                  "bg-blue-500",
-                ];
-                const badgeTexts = ["Featured", "Hot Deal", "New"];
                 const gradientColors = [
                   "from-emerald-100 to-emerald-200",
                   "from-blue-100 to-blue-200",
@@ -257,13 +270,6 @@ export default function HomePage() {
                         >
                           <Heart className="w-4 h-4" />
                         </Button>
-                        <Badge
-                          className={`absolute top-3 left-3 ${
-                            badgeColors[index % 3]
-                          }`}
-                        >
-                          {badgeTexts[index % 3]}
-                        </Badge>
                       </div>
                     </Link>
                     <CardContent className="p-6">
@@ -303,7 +309,8 @@ export default function HomePage() {
                               {listing.listingType}
                             </span>
                           </div>
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            {" "}
                             <div className="flex items-center space-x-2">
                               <Avatar className="w-6 h-6">
                                 <AvatarFallback>
@@ -316,12 +323,6 @@ export default function HomePage() {
                               </Avatar>
                               <span className="text-sm text-gray-600">
                                 {listing.user.name}
-                              </span>
-                            </div>
-                            <div className="flex items-center">
-                              <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                              <span className="text-sm text-gray-600 ml-1">
-                                {(4.5 + Math.random() * 0.5).toFixed(1)}
                               </span>
                             </div>
                           </div>
@@ -362,30 +363,63 @@ export default function HomePage() {
             </h3>{" "}
           </div>{" "}
           <div className="max-w-6xl mx-auto">
+            {" "}
             {loading ? (
               <div className="h-[450px] bg-gray-100 rounded-xl flex items-center justify-center">
-                <div className="text-gray-500">Loading map...</div>
+                <div className="text-gray-500">Loading listings...</div>
               </div>
-            ) : (
-              <InteractiveMap
-                height="450px"
-                className="rounded-xl overflow-hidden shadow-2xl"
-                listings={featuredListings
-                  .filter((listing) => listing.coordinates)
-                  .map((listing) => ({
+            ) : allListings.filter(
+                (listing) =>
+                  listing.coordinates &&
+                  listing.coordinates.lat &&
+                  listing.coordinates.lng
+              ).length > 0 ? (
+              (() => {
+                const validListings = allListings.filter(
+                  (listing) =>
+                    listing.coordinates &&
+                    listing.coordinates.lat &&
+                    listing.coordinates.lng
+                );
+                console.log(
+                  "Rendering map with listings:",
+                  validListings.length
+                );
+                console.log(
+                  "Map listings data:",
+                  validListings.map((listing) => ({
                     id: listing.id,
-                    position: [
-                      listing.coordinates!.lat,
-                      listing.coordinates!.lng,
-                    ] as [number, number],
                     title: listing.title,
-                    price: `$${listing.price}/month`,
-                    description: listing.description,
-                    listingUrl: `/listings/browse/${listing.id}`,
-                    rating: undefined,
-                    distance: undefined,
-                  }))}
-              />
+                    coordinates: listing.coordinates,
+                  }))
+                );
+
+                return (
+                  <InteractiveMap
+                    height="450px"
+                    className="rounded-xl overflow-hidden shadow-2xl"
+                    listings={validListings.map((listing) => ({
+                      id: listing.id,
+                      position: [
+                        listing.coordinates!.lat,
+                        listing.coordinates!.lng,
+                      ] as [number, number],
+                      title: listing.title,
+                      price: `$${listing.price}/month`,
+                      description: listing.description,
+                      listingUrl: `/listings/browse/${listing.id}`,
+                      rating: undefined,
+                      distance: undefined,
+                    }))}
+                  />
+                );
+              })()
+            ) : (
+              <div className="h-[450px] bg-gray-100 rounded-xl flex items-center justify-center">
+                <div className="text-gray-500">
+                  No listings with coordinates available for map display
+                </div>
+              </div>
             )}
           </div>
         </div>
