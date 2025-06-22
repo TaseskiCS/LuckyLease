@@ -16,6 +16,7 @@ import {
   Edit3,
   Mail,
   Phone,
+
   Home,
   Plus,
   Eye,
@@ -23,7 +24,11 @@ import {
   DollarSign,
   Bed,
   Bath,
-} from "lucide-react";
+} from 'lucide-react';
+import { LuckyOpinion } from "@/components/ui/lucky-opinion";
+import { Chat } from "@/components/ui/chat";
+
+  
 
 // Mock data - replace with real data from your backend
 const mockUser = {
@@ -130,6 +135,24 @@ const mockReviews = [
 
 export default function DashboardPage() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<'profile' | 'favorites' | 'reviews' | 'messages'>('profile');
+  const [isEditing, setIsEditing] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ id: string; token: string } | null>(null);
+
+  useEffect(() => {
+    loadFavorites();
+    // Get current user info from localStorage
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      try {
+        const user = JSON.parse(userInfo);
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Error parsing user info:', error);
+      }
+    }
+  }, []);
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<
     "profile" | "favorites" | "reviews" | "listings"
@@ -139,21 +162,6 @@ export default function DashboardPage() {
   const [userListings, setUserListings] = useState<any[]>([]);
   const [loadingListings, setLoadingListings] = useState(false);
   const [loadingFavorites, setLoadingFavorites] = useState(false);
-  useEffect(() => {
-    // Check for tab parameter in URL
-    const tab = searchParams.get("tab");
-    if (tab && ["profile", "favorites", "reviews", "listings"].includes(tab)) {
-      setActiveTab(tab as "profile" | "favorites" | "reviews" | "listings");
-    }
-
-    loadFavorites();
-    if (activeTab === "listings" || tab === "listings") {
-      loadUserListings();
-    }
-    if (activeTab === "favorites" || tab === "favorites") {
-      loadFavoriteListings();
-    }
-  }, [activeTab, searchParams]);
   const loadFavorites = () => {
     // This just loads the favorite IDs for the count in the sidebar
     const savedFavorites = localStorage.getItem("favorites");
@@ -404,6 +412,19 @@ export default function DashboardPage() {
                 >
                   <MessageSquare className="w-5 h-5" />
                   <span className="font-medium">Reviews</span>
+                </button>
+
+
+                <button
+                  onClick={() => setActiveTab('messages')}
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                    activeTab === 'messages'
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <MessageSquare className="w-5 h-5" />
+                  <span className="font-medium">Messages</span>
                 </button>
               </nav>{" "}
               {/* Quick Stats */}
@@ -832,6 +853,17 @@ export default function DashboardPage() {
             {/* Reviews Tab */}
             {activeTab === "reviews" && (
               <div className="bg-white rounded-lg shadow-lg p-8">
+
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Reviews</h2>
+                <div className="space-y-6">
+                  {mockReviews.map((review) => (
+                    <div key={review.id} className="border-b border-gray-200 pb-6 last:border-b-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-medium text-gray-900">{review.reviewer}</h3>
+                        <div className="flex items-center space-x-2">
+                          {renderStars(review.rating)}
+                          <span className="text-sm text-gray-500">{review.date}</span>
+                        </div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">
                     Reviews & Ratings
@@ -844,9 +876,42 @@ export default function DashboardPage() {
                       <div className="flex items-center space-x-1">
                         {renderStars(mockUser.rating)}
                       </div>
+                      <p className="text-gray-700">{review.comment}</p>
                     </div>
-                  </div>
+                  ))}
                 </div>
+              </div>
+            )}
+
+            {/* Messages Tab */}
+            {activeTab === 'messages' && (
+              <div className="bg-white rounded-lg shadow-lg p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">Messages</h2>
+                  <button
+                    onClick={() => setIsChatOpen(true)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Open Chat</span>
+                  </button>
+                </div>
+                
+                <div className="text-center py-12">
+                  <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No messages yet</h3>
+                  <p className="text-gray-600 mb-6">
+                    Start a conversation by contacting a listing owner or responding to messages.
+                  </p>
+                  <button
+                    onClick={() => setIsChatOpen(true)}
+                    className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                  >
+                    Open Messages
+                  </button>
+                </div>
+              </div>
+            )}
 
                 {mockReviews.length === 0 ? (
                   <div className="text-center py-12">
@@ -897,6 +962,16 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Chat Interface */}
+      {isChatOpen && currentUser && (
+        <Chat
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          currentUserId={currentUser.id}
+          token={currentUser.token}
+        />
+      )}
     </div>
   );
 }
