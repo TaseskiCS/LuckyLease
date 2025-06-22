@@ -77,7 +77,7 @@ export default function SignupPage() {
 
       toast.success("Account created successfully!");
       // Force a page reload to update the header component
-      window.location.href = "/listings";
+      window.location.href = "/listings/browse";
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Signup failed");
     } finally {
