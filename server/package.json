@@ -1,4 +1,4 @@
-{  "name": "LuckyLease-server",
+{  "name": "luckylease-server",
   "version": "1.0.0",
   "description": "Backend server for RoomRelay sublet marketplace",
   "main": "dist/index.js",
