@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { 
-  MapPin, 
-  DollarSign, 
-  Calendar, 
-  Heart, 
-  Star, 
-  Bed, 
-  Bath, 
-  Mail, 
-  Phone, 
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  MapPin,
+  DollarSign,
+  Calendar,
+  Heart,
+  Star,
+  Bed,
+  Bath,
+  Mail,
+  Phone,
   MessageCircle,
   ArrowLeft,
   Share2,
@@ -28,14 +28,14 @@ import {
   User,
   Shield,
   PhoneCall,
-  MessageSquare
-} from 'lucide-react';
+  MessageSquare,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LuckyOpinion } from "@/components/ui/lucky-opinion";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 interface Listing {
   id: string;
@@ -48,7 +48,7 @@ interface Listing {
   imageUrls: string[];
   summary?: string;
   tags: string[];
-  contactMethod: 'email' | 'in_app' | 'sms';
+  contactMethod: "email" | "in_app" | "sms";
   bedrooms: string;
   bathrooms: string;
   petsAllowed: boolean;
@@ -85,58 +85,96 @@ export default function ListingDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
-
   useEffect(() => {
     fetchListing();
+    loadFavoriteStatus();
   }, [params.listing]);
+
+  const loadFavoriteStatus = () => {
+    const savedFavorites = localStorage.getItem("favorites");
+    if (savedFavorites) {
+      try {
+        const favoriteIds: string[] = JSON.parse(savedFavorites);
+        setIsLiked(favoriteIds.includes(params.listing as string));
+      } catch (error) {
+        console.error("Error loading favorite status:", error);
+      }
+    }
+  };
 
   const fetchListing = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/listings/${params.listing}`);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/listings/${params.listing}`
+      );
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch listing');
+        throw new Error(data.error || "Failed to fetch listing");
       }
 
       setListing(data.listing);
     } catch (error) {
-      toast.error('Failed to load listing');
-      console.error('Error fetching listing:', error);
+      toast.error("Failed to load listing");
+      console.error("Error fetching listing:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
   const formatMemberSince = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'long',
-      year: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
     });
   };
 
   const handleContact = () => {
-    if (listing?.contactMethod === 'email') {
+    if (listing?.contactMethod === "email") {
       window.location.href = `mailto:${listing.user.email}`;
-    } else if (listing?.contactMethod === 'sms') {
+    } else if (listing?.contactMethod === "sms") {
       window.location.href = `sms:${listing.user.phone}`;
     } else {
-      toast.success('Opening chat...');
+      toast.success("Opening chat...");
       // TODO: Implement in-app messaging
     }
   };
-
   const handleLike = () => {
-    setIsLiked(!isLiked);
-    toast.success(isLiked ? 'Removed from favorites' : 'Added to favorites');
+    if (!listing) return;
+
+    const savedFavorites = localStorage.getItem("favorites");
+    let favoriteIds: string[] = [];
+
+    if (savedFavorites) {
+      try {
+        favoriteIds = JSON.parse(savedFavorites);
+      } catch (error) {
+        console.error("Error parsing favorites:", error);
+      }
+    }
+
+    const isFavorited = favoriteIds.includes(listing.id);
+    let newFavorites: string[];
+
+    if (isFavorited) {
+      newFavorites = favoriteIds.filter((id) => id !== listing.id);
+      setIsLiked(false);
+      toast.success("Removed from favorites");
+    } else {
+      newFavorites = [...favoriteIds, listing.id];
+      setIsLiked(true);
+      toast.success("Added to favorites");
+    }
+
+    localStorage.setItem("favorites", JSON.stringify(newFavorites));
   };
 
   if (loading) {
@@ -154,8 +192,12 @@ export default function ListingDetailPage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Listing not found</h2>
-          <p className="text-gray-600 mb-6">The listing you're looking for doesn't exist.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Listing not found
+          </h2>
+          <p className="text-gray-600 mb-6">
+            The listing you're looking for doesn't exist.
+          </p>
           <Link href="/listings/browse">
             <Button className="bg-emerald-600 hover:bg-emerald-700">
               Back to Browse
@@ -172,7 +214,10 @@ export default function ListingDetailPage() {
         {/* Back Button */}
         <div className="mb-6">
           <Link href="/listings/browse">
-            <Button variant="ghost" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
+            <Button
+              variant="ghost"
+              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+            >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Browse</span>
             </Button>
@@ -197,7 +242,11 @@ export default function ListingDetailPage() {
                     className="bg-white/90 hover:bg-white"
                     onClick={handleLike}
                   >
-                    <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                    <Heart
+                      className={`w-4 h-4 ${
+                        isLiked ? "fill-red-500 text-red-500" : ""
+                      }`}
+                    />
                   </Button>
                   <Button
                     size="sm"
@@ -208,7 +257,7 @@ export default function ListingDetailPage() {
                   </Button>
                 </div>
               </div>
-              
+
               {/* Thumbnail Images */}
               {listing.imageUrls.length > 1 && (
                 <div className="flex space-x-2 overflow-x-auto">
@@ -217,7 +266,9 @@ export default function ListingDetailPage() {
                       key={index}
                       onClick={() => setSelectedImage(index)}
                       className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
-                        selectedImage === index ? 'border-emerald-500' : 'border-gray-200'
+                        selectedImage === index
+                          ? "border-emerald-500"
+                          : "border-gray-200"
                       }`}
                     >
                       <img
@@ -233,8 +284,10 @@ export default function ListingDetailPage() {
 
             {/* Title and Basic Info */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">{listing.title}</h1>
-              
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                {listing.title}
+              </h1>
+
               <div className="flex items-center space-x-6 text-gray-600 mb-4">
                 <div className="flex items-center">
                   <MapPin className="w-5 h-5 mr-2" />
@@ -242,7 +295,10 @@ export default function ListingDetailPage() {
                 </div>
                 <div className="flex items-center">
                   <Calendar className="w-5 h-5 mr-2" />
-                  <span>{formatDate(listing.startDate)} - {formatDate(listing.endDate)}</span>
+                  <span>
+                    {formatDate(listing.startDate)} -{" "}
+                    {formatDate(listing.endDate)}
+                  </span>
                 </div>
               </div>
 
@@ -266,7 +322,9 @@ export default function ListingDetailPage() {
 
             {/* Description */}
             <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">About this place</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                About this place
+              </h2>
               <div className="prose prose-gray max-w-none">
                 <p className="text-gray-700 leading-relaxed whitespace-pre-line">
                   {listing.detailedDescription}
@@ -278,7 +336,9 @@ export default function ListingDetailPage() {
 
             {/* Amenities */}
             <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Amenities</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Amenities
+              </h2>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center space-x-3">
                   <Wifi className="w-5 h-5 text-emerald-600" />
@@ -321,7 +381,9 @@ export default function ListingDetailPage() {
             {listing.rules && listing.rules.length > 0 && (
               <>
                 <div className="mb-8">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">House rules</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                    House rules
+                  </h2>
                   <div className="space-y-2">
                     {listing.rules.map((rule, index) => (
                       <div key={index} className="flex items-start space-x-3">
@@ -339,7 +401,9 @@ export default function ListingDetailPage() {
             {listing.nearbyAmenities && listing.nearbyAmenities.length > 0 && (
               <>
                 <div className="mb-8">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">What's nearby</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                    What's nearby
+                  </h2>
                   <div className="grid grid-cols-2 gap-4">
                     {listing.nearbyAmenities.map((amenity, index) => (
                       <div key={index} className="flex items-center space-x-3">
@@ -361,7 +425,9 @@ export default function ListingDetailPage() {
               <CardContent className="p-6">
                 <div className="flex items-baseline justify-between mb-4">
                   <div>
-                    <span className="text-3xl font-bold text-emerald-600">${listing.price}</span>
+                    <span className="text-3xl font-bold text-emerald-600">
+                      ${listing.price}
+                    </span>
                     <span className="text-gray-600 ml-1">/month</span>
                   </div>
                   <div className="flex items-center">
@@ -371,16 +437,16 @@ export default function ListingDetailPage() {
                 </div>
 
                 <div className="space-y-3 mb-6">
-                  <Button 
+                  <Button
                     onClick={handleContact}
                     className="w-full bg-emerald-600 hover:bg-emerald-700"
                   >
-                    {listing.contactMethod === 'email' ? (
+                    {listing.contactMethod === "email" ? (
                       <>
                         <Mail className="w-4 h-4 mr-2" />
                         Contact via Email
                       </>
-                    ) : listing.contactMethod === 'sms' ? (
+                    ) : listing.contactMethod === "sms" ? (
                       <>
                         <Phone className="w-4 h-4 mr-2" />
                         Contact via SMS
@@ -392,9 +458,9 @@ export default function ListingDetailPage() {
                       </>
                     )}
                   </Button>
-                  
-                  <Button 
-                    variant="outline" 
+
+                  <Button
+                    variant="outline"
                     className="w-full border-emerald-200 text-emerald-600 hover:bg-emerald-50"
                   >
                     <PhoneCall className="w-4 h-4 mr-2" />
@@ -411,7 +477,9 @@ export default function ListingDetailPage() {
             {/* Lucky Opinion */}
             <Card className="mb-6">
               <CardContent className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Need advice?</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">
+                  Need advice?
+                </h3>
                 <LuckyOpinion
                   listing={{
                     id: listing.id,
@@ -425,7 +493,7 @@ export default function ListingDetailPage() {
                     laundryInBuilding: listing.laundryInBuilding,
                     parkingAvailable: listing.parkingAvailable,
                     airConditioning: listing.airConditioning,
-                    school: listing.school
+                    school: listing.school,
                   }}
                 />
               </CardContent>
@@ -438,11 +506,16 @@ export default function ListingDetailPage() {
                   <Avatar className="w-16 h-16">
                     <AvatarImage src={listing.user.avatar} />
                     <AvatarFallback className="text-lg">
-                      {listing.user.name.split(' ').map(n => n[0]).join('')}
+                      {listing.user.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="font-semibold text-gray-900">{listing.user.name}</h3>
+                    <h3 className="font-semibold text-gray-900">
+                      {listing.user.name}
+                    </h3>
                     <div className="flex items-center space-x-2">
                       {listing.user.verified && (
                         <Badge variant="secondary" className="text-xs">
@@ -451,7 +524,8 @@ export default function ListingDetailPage() {
                         </Badge>
                       )}
                       <span className="text-sm text-gray-600">
-                        Member since {formatMemberSince(listing.user.memberSince)}
+                        Member since{" "}
+                        {formatMemberSince(listing.user.memberSince)}
                       </span>
                     </div>
                   </div>
@@ -460,11 +534,15 @@ export default function ListingDetailPage() {
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Response rate:</span>
-                    <span className="font-medium">{listing.user.responseRate}%</span>
+                    <span className="font-medium">
+                      {listing.user.responseRate}%
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Response time:</span>
-                    <span className="font-medium">{listing.user.responseTime}</span>
+                    <span className="font-medium">
+                      {listing.user.responseTime}
+                    </span>
                   </div>
                 </div>
 
@@ -480,7 +558,9 @@ export default function ListingDetailPage() {
             {/* Utilities Included */}
             <Card>
               <CardContent className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Utilities included</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">
+                  Utilities included
+                </h3>
                 <div className="space-y-2">
                   {listing.utilities?.map((utility, index) => (
                     <div key={index} className="flex items-center space-x-3">
@@ -496,4 +576,4 @@ export default function ListingDetailPage() {
       </div>
     </div>
   );
-} 
+}
