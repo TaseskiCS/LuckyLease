@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,8 +23,71 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import toast from "react-hot-toast";
+
+interface Listing {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  location: string;
+  startDate: string;
+  endDate: string;
+  imageUrls: string[];
+  coordinates?: { lat: number; lng: number };
+  contactMethod: "email" | "in_app" | "sms";
+  bedrooms: string;
+  bathrooms: string;
+  petsAllowed: boolean;
+  laundryInBuilding: boolean;
+  parkingAvailable: boolean;
+  airConditioning: boolean;
+  school?: string;
+  listingType: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
 
 export default function HomePage() {
+  const [featuredListings, setFeaturedListings] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch featured listings from API
+  useEffect(() => {
+    fetchFeaturedListings();
+  }, []);
+
+  const fetchFeaturedListings = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/listings?limit=6`
+      );
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to fetch listings");
+      }
+
+      setFeaturedListings(data.listings || []);
+    } catch (error) {
+      console.error("Error fetching featured listings:", error);
+      // Don't show error toast on main page, just log it
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter listings that have coordinates for the map
+  const listingsWithCoordinates = featuredListings.filter(
+    (listing) =>
+      listing.coordinates && listing.coordinates.lat && listing.coordinates.lng
+  );
   return (
     <div
       className="min-h-screen"
@@ -111,179 +177,127 @@ export default function HomePage() {
               Filters
             </Button>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Listing 1 */}
-            <Card className="overflow-hidden hover:shadow-xl transition-shadow">
-              <div className="relative">
-                <div className="w-full h-48 bg-gradient-to-r from-emerald-100 to-emerald-200 flex items-center justify-center">
-                  {" "}
-                  <Home className="w-16 h-16 text-emerald-600" />
-                </div>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="absolute top-3 right-3 bg-white/90 hover:bg-white hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
-                >
-                  <Heart className="w-4 h-4" />
-                </Button>
-                <Badge className="absolute top-3 left-3 bg-emerald-600">
-                  Featured
-                </Badge>
-              </div>
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h4 className="font-semibold text-lg">
-                      Modern Studio Near University
-                    </h4>
-                    <p className="text-gray-600 flex items-center">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      0.3 miles from campus
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-emerald-600">
-                      $1,200
+          {loading ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i} className="overflow-hidden">
+                  <div className="w-full h-48 bg-gray-200 animate-pulse"></div>
+                  <CardContent className="p-6">
+                    <div className="space-y-3">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      <div className="h-3 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                      <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2"></div>
                     </div>
-                    <div className="text-sm text-gray-500">/month</div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
-                  <span className="flex items-center">
-                    <Users className="w-4 h-4 mr-1" />1 bed
-                  </span>
-                  <span>1 bath</span>
-                  <span>450 sq ft</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Avatar className="w-6 h-6">
-                      <AvatarFallback>JS</AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm text-gray-600">Jessica S.</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                    <span className="text-sm text-gray-600 ml-1">4.9</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Listing 2 */}
-            <Card className="overflow-hidden hover:shadow-xl transition-shadow">
-              <div className="relative">
-                <div className="w-full h-48 bg-gradient-to-r from-blue-100 to-blue-200 flex items-center justify-center">
-                  {" "}
-                  <Users className="w-16 h-16 text-blue-600" />
-                </div>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="absolute top-3 right-3 bg-white/90 hover:bg-white hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredListings.slice(0, 6).map((listing, index) => (
+                <Card
+                  key={listing.id}
+                  className="overflow-hidden hover:shadow-xl transition-shadow"
                 >
-                  <Heart className="w-4 h-4" />
-                </Button>
-                <Badge className="absolute top-3 left-3 bg-orange-500">
-                  Hot Deal
-                </Badge>
-              </div>
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h4 className="font-semibold text-lg">
-                      Shared 2BR Near Campus
-                    </h4>
-                    <p className="text-gray-600 flex items-center">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      0.5 miles from campus
-                    </p>
+                  <div className="relative">
+                    {listing.imageUrls && listing.imageUrls.length > 0 ? (
+                      <div className="w-full h-48 relative">
+                        <Image
+                          src={listing.imageUrls[0]}
+                          alt={listing.title}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full h-48 bg-gradient-to-r from-emerald-100 to-emerald-200 flex items-center justify-center">
+                        <Home className="w-16 h-16 text-emerald-600" />
+                      </div>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="absolute top-3 right-3 bg-white/90 hover:bg-white hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
+                    >
+                      <Heart className="w-4 h-4" />
+                    </Button>
+                    <Badge className="absolute top-3 left-3 bg-emerald-600">
+                      {index === 0
+                        ? "Featured"
+                        : index === 1
+                        ? "Hot Deal"
+                        : "New"}
+                    </Badge>
                   </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-emerald-600">
-                      $850
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h4 className="font-semibold text-lg line-clamp-2">
+                          {listing.title}
+                        </h4>
+                        <p className="text-gray-600 flex items-center">
+                          <MapPin className="w-4 h-4 mr-1" />
+                          {listing.location}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-emerald-600">
+                          ${listing.price}
+                        </div>
+                        <div className="text-sm text-gray-500">/month</div>
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-500">/month</div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
-                  <span className="flex items-center">
-                    <Users className="w-4 h-4 mr-1" />1 bed
-                  </span>
-                  <span>2 bath</span>
-                  <span>Shared</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Avatar className="w-6 h-6">
-                      <AvatarFallback>MR</AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm text-gray-600">Mike R.</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                    <span className="text-sm text-gray-600 ml-1">4.8</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Listing 3 */}
-            <Card className="overflow-hidden hover:shadow-xl transition-shadow">
-              <div className="relative">
-                <div className="w-full h-48 bg-gradient-to-r from-purple-100 to-purple-200 flex items-center justify-center">
-                  {" "}
-                  <Home className="w-16 h-16 text-purple-600" />
-                </div>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="absolute top-3 right-3 bg-white/90 hover:bg-white hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
-                >
-                  <Heart className="w-4 h-4" />
-                </Button>
-                <Badge className="absolute top-3 left-3 bg-blue-500">New</Badge>
-              </div>
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h4 className="font-semibold text-lg">
-                      Cozy Room Downtown
-                    </h4>
-                    <p className="text-gray-600 flex items-center">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      0.2 miles from campus
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-emerald-600">
-                      $950
+                    <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
+                      <span className="flex items-center">
+                        <Users className="w-4 h-4 mr-1" />
+                        {listing.bedrooms === "studio"
+                          ? "Studio"
+                          : `${listing.bedrooms} bed`}
+                      </span>
+                      <span>{listing.bathrooms} bath</span>
+                      <span className="capitalize">{listing.listingType}</span>
                     </div>
-                    <div className="text-sm text-gray-500">/month</div>
-                  </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Avatar className="w-6 h-6">
+                          <AvatarFallback>
+                            {listing.user.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")
+                              .toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm text-gray-600">
+                          {listing.user.name}
+                        </span>
+                      </div>
+                      <Link href={`/listings/browse/${listing.id}`}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-emerald-600 border-emerald-600 hover:bg-emerald-50"
+                        >
+                          View Details
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              {featuredListings.length === 0 && !loading && (
+                <div className="col-span-full text-center py-12">
+                  <Home className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                    No listings available
+                  </h3>
+                  <p className="text-gray-500">
+                    Check back later for new listings!
+                  </p>
                 </div>
-                <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
-                  <span className="flex items-center">
-                    <Users className="w-4 h-4 mr-1" />1 bed
-                  </span>
-                  <span>1 bath</span>
-                  <span>Private</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Avatar className="w-6 h-6">
-                      <AvatarFallback>AL</AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm text-gray-600">Anna L.</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                    <span className="text-sm text-gray-600 ml-1">5.0</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>{" "}
+              )}
+            </div>
+          )}
           <div className="text-center mt-12">
             <Button
               size="lg"
@@ -303,10 +317,29 @@ export default function HomePage() {
             </h3>{" "}
           </div>{" "}
           <div className="max-w-6xl mx-auto">
-            <InteractiveMap
-              height="450px"
-              className="rounded-xl overflow-hidden shadow-2xl"
-            />
+            {loading ? (
+              <div className="h-[450px] bg-gray-100 rounded-xl flex items-center justify-center">
+                <div className="text-gray-500">Loading map...</div>
+              </div>
+            ) : (
+              <InteractiveMap
+                height="450px"
+                className="rounded-xl overflow-hidden shadow-2xl"
+                listings={listingsWithCoordinates.map((listing) => ({
+                  id: listing.id,
+                  position: [
+                    listing.coordinates!.lat,
+                    listing.coordinates!.lng,
+                  ] as [number, number],
+                  title: listing.title,
+                  price: `$${listing.price}/month`,
+                  description: listing.description,
+                  listingUrl: `/listings/browse/${listing.id}`,
+                  rating: undefined,
+                  distance: undefined,
+                }))}
+              />
+            )}
           </div>
         </div>
       </section>{" "}

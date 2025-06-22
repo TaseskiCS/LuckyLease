@@ -142,6 +142,8 @@ export default function ListingsPage() {
       if (filters.maxPrice) params.append("maxPrice", filters.maxPrice);
       if (filters.startDate) params.append("startDate", filters.startDate);
       if (filters.endDate) params.append("endDate", filters.endDate);
+      if (filters.propertyType)
+        params.append("listingType", filters.propertyType);
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/listings?${params}`
@@ -280,11 +282,10 @@ export default function ListingsPage() {
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none bg-white"
                   >
+                    {" "}
                     <option value="">All Types</option>
-                    <option value="studio">Studio</option>
-                    <option value="shared">Shared Room</option>
-                    <option value="private">Private Room</option>
-                    <option value="apartment">Full Apartment</option>
+                    <option value="house">House</option>
+                    <option value="apartment">Apartment</option>
                   </select>
                   <Home className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
                 </div>

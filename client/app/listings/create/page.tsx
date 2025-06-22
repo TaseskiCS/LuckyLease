@@ -57,6 +57,7 @@ interface ListingFormData {
   laundryInBuilding: boolean;
   parkingAvailable: boolean;
   airConditioning: boolean;
+  listingType: "house" | "apartment";
   images: FileList;
 }
 
@@ -65,14 +66,22 @@ export default function CreateListingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
+  const [addressValidation, setAddressValidation] = useState<{
+    status: "idle" | "checking" | "valid" | "invalid";
+    message: string;
+  }>({ status: "idle", message: "" });
+  const [addressCheckTimeout, setAddressCheckTimeout] =
+    useState<NodeJS.Timeout | null>(null);
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
+    watch,
   } = useForm<ListingFormData>();
 
+  // Watch the location field for changes
+  const watchedLocation = watch("location");
   // Check authentication on page load
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -83,6 +92,28 @@ export default function CreateListingPage() {
     }
     setIsAuthenticated(true);
   }, [router]);
+
+  // Watch for location changes and validate address
+  useEffect(() => {
+    if (addressCheckTimeout) {
+      clearTimeout(addressCheckTimeout);
+    }
+
+    if (watchedLocation && watchedLocation.trim().length >= 2) {
+      const timeout = setTimeout(() => {
+        validateAddress(watchedLocation);
+      }, 1000);
+      setAddressCheckTimeout(timeout);
+    } else {
+      setAddressValidation({ status: "idle", message: "" });
+    }
+
+    return () => {
+      if (addressCheckTimeout) {
+        clearTimeout(addressCheckTimeout);
+      }
+    };
+  }, [watchedLocation]);
 
   // Handle image preview
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,11 +134,65 @@ export default function CreateListingPage() {
       });
     }
   };
-
   const removeImage = (indexToRemove: number) => {
     setImagePreview((prev) =>
       prev.filter((_, index) => index !== indexToRemove)
     );
+  };
+  // Address validation function
+  const validateAddress = async (address: string) => {
+    if (!address.trim()) {
+      setAddressValidation({ status: "idle", message: "" });
+      return;
+    }
+
+    if (address.trim().length < 2) {
+      setAddressValidation({ status: "idle", message: "" });
+      return;
+    }
+
+    setAddressValidation({
+      status: "checking",
+      message: "Checking if address can be mapped...",
+    });
+    try {
+      const token = localStorage.getItem("token");
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const response = await fetch(`${apiUrl}/api/listings/validate-address`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ address: address.trim() }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Address validation failed");
+      }
+
+      const result = await response.json();
+
+      if (result.valid) {
+        setAddressValidation({
+          status: "valid",
+          message: "✓ Address found! This listing will appear on the map.",
+        });
+      } else {
+        setAddressValidation({
+          status: "invalid",
+          message:
+            "⚠ Address not found. This listing will not appear on the map.",
+        });
+      }
+    } catch (error) {
+      console.error("Address validation error:", error);
+      setAddressValidation({
+        status: "invalid",
+        message:
+          "⚠ Could not validate address. This listing may not appear on the map.",
+      });
+    }
   };
 
   const onSubmit = async (data: ListingFormData) => {
@@ -148,6 +233,7 @@ export default function CreateListingPage() {
         "airConditioning",
         (data.airConditioning || false).toString()
       );
+      formData.append("listingType", data.listingType);
 
       // Add images
       if (data.images) {
@@ -310,6 +396,33 @@ export default function CreateListingPage() {
                       </p>
                     )}
                   </div>
+
+                  {/* Property Type */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Property Type *
+                    </label>
+                    <div className="relative">
+                      <select
+                        {...register("listingType", {
+                          required: "Property type is required",
+                        })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none bg-white h-12 text-md"
+                      >
+                        {" "}
+                        <option value="">Select property type</option>
+                        <option value="house">House</option>
+                        <option value="apartment">Apartment</option>
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                    </div>
+                    {errors.listingType && (
+                      <p className="mt-2 text-sm text-red-600 flex items-center">
+                        <X className="w-4 h-4 mr-1" />
+                        {errors.listingType.message}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Location & Pricing */}
@@ -414,15 +527,14 @@ export default function CreateListingPage() {
                           </svg>
                         </div>
                       </div>
-                    </div>
-
+                    </div>{" "}
                     {/* Address */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-3">
                         Address/Location *
                       </label>
                       <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />{" "}
                         <Input
                           {...register("location", {
                             required: "Location is required",
@@ -445,8 +557,30 @@ export default function CreateListingPage() {
                           {errors.location.message}
                         </p>
                       )}
+                      {/* Address validation feedback */}
+                      {addressValidation.status !== "idle" && (
+                        <div
+                          className={`mt-2 text-sm flex items-center ${
+                            addressValidation.status === "checking"
+                              ? "text-blue-600"
+                              : addressValidation.status === "valid"
+                              ? "text-green-600"
+                              : "text-orange-600"
+                          }`}
+                        >
+                          {addressValidation.status === "checking" && (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                          )}
+                          {addressValidation.status === "valid" && (
+                            <Check className="w-4 h-4 mr-2" />
+                          )}
+                          {addressValidation.status === "invalid" && (
+                            <span className="w-4 h-4 mr-2">⚠</span>
+                          )}
+                          {addressValidation.message}
+                        </div>
+                      )}
                     </div>
-
                     {/* Price */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-3">
