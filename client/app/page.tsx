@@ -1,3 +1,7 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,11 +21,62 @@ import {
   Filter,
   Home,
   Clover,
+  Bed,
+  Bath,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
+interface Listing {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  location: string;
+  beds: number;
+  baths: number;
+  available_from: string;
+  available_to: string;
+  images: string[];
+  created_at: string;
+  user: {
+    name: string;
+  };
+}
+
 export default function HomePage() {
+  const [featuredListings, setFeaturedListings] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchCity, setSearchCity] = useState('');
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchFeaturedListings = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/api/listings?limit=3&sort=created_at&order=desc');
+        const data = await response.json();
+        setFeaturedListings(data.listings || data);
+      } catch (error) {
+        console.error('Error fetching featured listings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedListings();
+  }, []);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchCity.trim()) {
+      // Navigate to browse page with location filter
+      router.push(`/listings/browse?location=${encodeURIComponent(searchCity.trim())}`);
+    } else {
+      // Navigate to browse page without filter
+      router.push('/listings/browse');
+    }
+  };
+
   return (
     <div
       className="min-h-screen"
@@ -71,219 +126,157 @@ export default function HomePage() {
             </p>
 
             {/* Search Bar */}
-            <div className="bg-white rounded-2xl shadow-xl p-8 mb-12">
+            <form onSubmit={handleSearch} className="bg-white rounded-2xl shadow-xl p-8 mb-12">
               <div className="flex flex-col md:flex-row gap-6">
                 <div className="flex-1">
                   <div className="relative">
                     <MapPin className="absolute left-4 top-4 w-6 h-6 text-gray-400" />
                     <Input
-                      placeholder="Enter your university or city"
+                      placeholder="Enter your city"
                       className="pl-12 h-14 border-gray-200 text-lg"
+                      value={searchCity}
+                      onChange={(e) => setSearchCity(e.target.value)}
                     />
                   </div>
                 </div>
-                <Button className="h-14 px-10 bg-emerald-600 hover:bg-emerald-700 hover:scale-105 transition-all duration-300 ease-in-out hover:shadow-xl text-lg">
+                <Button 
+                  type="submit"
+                  className="h-14 px-10 bg-emerald-600 hover:bg-emerald-700 hover:scale-105 transition-all duration-300 ease-in-out hover:shadow-xl text-lg"
+                >
                   <Search className="w-6 h-6 mr-3" />
                   Search
                 </Button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       </section>{" "}
       {/* Featured Listings */}
       <section className="py-16 px-4">
         <div className="container mx-auto">
-          <div className="flex items-center justify-between mb-12">
-            <div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                Featured Lucky Finds
-              </h3>
-              <p className="text-gray-600">
-                Handpicked subleases near popular campuses
-              </p>
-            </div>{" "}
-            <Button
-              variant="outline"
-              className="border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 hover:scale-105 transition-all duration-300 ease-in-out hover:shadow-lg"
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              Filters
-            </Button>
+          <div className="mb-12">
+            <h3 className="text-3xl font-bold text-gray-900 mb-2">
+              Featured Lucky Finds
+            </h3>
+            <p className="text-gray-600">
+              Handpicked subleases near popular campuses
+            </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Listing 1 */}
-            <Card className="overflow-hidden hover:shadow-xl transition-shadow">
-              <div className="relative">
-                <div className="w-full h-48 bg-gradient-to-r from-emerald-100 to-emerald-200 flex items-center justify-center">
-                  {" "}
-                  <Home className="w-16 h-16 text-emerald-600" />
-                </div>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="absolute top-3 right-3 bg-white/90 hover:bg-white hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
-                >
-                  <Heart className="w-4 h-4" />
-                </Button>
-                <Badge className="absolute top-3 left-3 bg-emerald-600">
-                  Featured
-                </Badge>
-              </div>
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h4 className="font-semibold text-lg">
-                      Modern Studio Near University
-                    </h4>
-                    <p className="text-gray-600 flex items-center">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      0.3 miles from campus
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-emerald-600">
-                      $1,200
+          {loading ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="overflow-hidden animate-pulse">
+                  <div className="w-full h-48 bg-gray-200"></div>
+                  <CardContent className="p-6">
+                    <div className="space-y-3">
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                      <div className="h-8 bg-gray-200 rounded w-1/4"></div>
                     </div>
-                    <div className="text-sm text-gray-500">/month</div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
-                  <span className="flex items-center">
-                    <Users className="w-4 h-4 mr-1" />1 bed
-                  </span>
-                  <span>1 bath</span>
-                  <span>450 sq ft</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Avatar className="w-6 h-6">
-                      <AvatarFallback>JS</AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm text-gray-600">Jessica S.</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                    <span className="text-sm text-gray-600 ml-1">4.9</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Listing 2 */}
-            <Card className="overflow-hidden hover:shadow-xl transition-shadow">
-              <div className="relative">
-                <div className="w-full h-48 bg-gradient-to-r from-blue-100 to-blue-200 flex items-center justify-center">
-                  {" "}
-                  <Users className="w-16 h-16 text-blue-600" />
-                </div>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="absolute top-3 right-3 bg-white/90 hover:bg-white hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
-                >
-                  <Heart className="w-4 h-4" />
-                </Button>
-                <Badge className="absolute top-3 left-3 bg-orange-500">
-                  Hot Deal
-                </Badge>
-              </div>
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h4 className="font-semibold text-lg">
-                      Shared 2BR Near Campus
-                    </h4>
-                    <p className="text-gray-600 flex items-center">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      0.5 miles from campus
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-emerald-600">
-                      $850
-                    </div>
-                    <div className="text-sm text-gray-500">/month</div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
-                  <span className="flex items-center">
-                    <Users className="w-4 h-4 mr-1" />1 bed
-                  </span>
-                  <span>2 bath</span>
-                  <span>Shared</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Avatar className="w-6 h-6">
-                      <AvatarFallback>MR</AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm text-gray-600">Mike R.</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                    <span className="text-sm text-gray-600 ml-1">4.8</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Listing 3 */}
-            <Card className="overflow-hidden hover:shadow-xl transition-shadow">
-              <div className="relative">
-                <div className="w-full h-48 bg-gradient-to-r from-purple-100 to-purple-200 flex items-center justify-center">
-                  {" "}
-                  <Home className="w-16 h-16 text-purple-600" />
-                </div>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="absolute top-3 right-3 bg-white/90 hover:bg-white hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
-                >
-                  <Heart className="w-4 h-4" />
-                </Button>
-                <Badge className="absolute top-3 left-3 bg-blue-500">New</Badge>
-              </div>
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h4 className="font-semibold text-lg">
-                      Cozy Room Downtown
-                    </h4>
-                    <p className="text-gray-600 flex items-center">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      0.2 miles from campus
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-emerald-600">
-                      $950
-                    </div>
-                    <div className="text-sm text-gray-500">/month</div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
-                  <span className="flex items-center">
-                    <Users className="w-4 h-4 mr-1" />1 bed
-                  </span>
-                  <span>1 bath</span>
-                  <span>Private</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Avatar className="w-6 h-6">
-                      <AvatarFallback>AL</AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm text-gray-600">Anna L.</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                    <span className="text-sm text-gray-600 ml-1">5.0</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>{" "}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : featuredListings.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredListings.map((listing, index) => {
+                const badgeColors = ['bg-emerald-600', 'bg-orange-500', 'bg-blue-500'];
+                const badgeTexts = ['Featured', 'Hot Deal', 'New'];
+                const gradientColors = [
+                  'from-emerald-100 to-emerald-200',
+                  'from-blue-100 to-blue-200', 
+                  'from-purple-100 to-purple-200'
+                ];
+                const iconColors = ['text-emerald-600', 'text-blue-600', 'text-purple-600'];
+                
+                return (
+                  <Link key={listing.id} href={`/listings/browse/${listing.id}`}>
+                    <Card className="overflow-hidden hover:shadow-xl transition-shadow cursor-pointer">
+                      <div className="relative">
+                        {listing.images && listing.images.length > 0 ? (
+                          <div className="w-full h-48 relative">
+                            <Image
+                              src={`http://localhost:8080${listing.images[0]}`}
+                              alt={listing.title}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className={`w-full h-48 bg-gradient-to-r ${gradientColors[index % 3]} flex items-center justify-center`}>
+                            <Home className={`w-16 h-16 ${iconColors[index % 3]}`} />
+                          </div>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="absolute top-3 right-3 bg-white/90 hover:bg-white hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
+                        >
+                          <Heart className="w-4 h-4" />
+                        </Button>
+                        <Badge className={`absolute top-3 left-3 ${badgeColors[index % 3]}`}>
+                          {badgeTexts[index % 3]}
+                        </Badge>
+                      </div>
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <h4 className="font-semibold text-lg line-clamp-1">
+                              {listing.title}
+                            </h4>
+                            <p className="text-gray-600 flex items-center">
+                              <MapPin className="w-4 h-4 mr-1" />
+                              {listing.location}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-2xl font-bold text-emerald-600">
+                              ${listing.price}
+                            </div>
+                            <div className="text-sm text-gray-500">/month</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
+                          <span className="flex items-center">
+                            <Bed className="w-4 h-4 mr-1" />
+                            {listing.beds} bed{listing.beds !== 1 ? 's' : ''}
+                          </span>
+                          <span className="flex items-center">
+                            <Bath className="w-4 h-4 mr-1" />
+                            {listing.baths} bath{listing.baths !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <Avatar className="w-6 h-6">
+                              <AvatarFallback>
+                                {listing.user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm text-gray-600">
+                              {listing.user?.name || 'User'}
+                            </span>
+                          </div>
+                          <div className="flex items-center">
+                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                            <span className="text-sm text-gray-600 ml-1">
+                              {(Math.random() * 2 + 3).toFixed(1)}
+                            </span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Home className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">No listings yet</h3>
+              <p className="text-gray-500">Be the first to create a listing!</p>
+            </div>
+          )}
           <div className="text-center mt-12">
             <Button
               size="lg"
