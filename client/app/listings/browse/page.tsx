@@ -189,6 +189,7 @@ export default function ListingsPage() {
       startDate: '',
       endDate: '',
       bedrooms: '',
+      propertyType: '',
       petsAllowed: false,
       laundryInBuilding: false,
       parkingAvailable: false,

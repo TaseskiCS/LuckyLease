@@ -59,22 +59,7 @@ interface Listing {
   updatedAt: string;
 }
 
-interface Listing {
-  id: number;
-  title: string;
-  description: string;
-  price: number;
-  location: string;
-  beds: number;
-  baths: number;
-  available_from: string;
-  available_to: string;
-  images: string[];
-  created_at: string;
-  user: {
-    name: string;
-  };
-}
+
 
 export default function HomePage() {
   const [featuredListings, setFeaturedListings] = useState<Listing[]>([]);
@@ -87,7 +72,7 @@ export default function HomePage() {
       try {
         // Use Spencer's API structure but main's approach for handling response
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/listings?limit=6`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/listings?limit=3`
         );
         const data = await response.json();
 
@@ -204,7 +189,7 @@ export default function HomePage() {
           </div>
           {loading ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[...Array(6)].map((_, i) => (
+              {[...Array(3)].map((_, i) => (
                 <Card key={i} className="overflow-hidden animate-pulse">
                   <div className="w-full h-48 bg-gray-200"></div>
                   <CardContent className="p-6">
@@ -219,7 +204,7 @@ export default function HomePage() {
             </div>
           ) : featuredListings.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredListings.slice(0, 6).map((listing, index) => {
+              {featuredListings.slice(0, 3).map((listing, index) => {
                 const badgeColors = ['bg-emerald-600', 'bg-orange-500', 'bg-blue-500'];
                 const badgeTexts = ['Featured', 'Hot Deal', 'New'];
                 const gradientColors = [
@@ -362,7 +347,7 @@ export default function HomePage() {
               <InteractiveMap
                 height="450px"
                 className="rounded-xl overflow-hidden shadow-2xl"
-                listings={listingsWithCoordinates.map((listing) => ({
+                listings={featuredListings.filter(listing => listing.coordinates).map((listing) => ({
                   id: listing.id,
                   position: [
                     listing.coordinates!.lat,
