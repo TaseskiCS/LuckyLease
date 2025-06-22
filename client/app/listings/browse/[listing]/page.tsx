@@ -35,6 +35,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LuckyOpinion } from "@/components/ui/lucky-opinion";
+import { Chat } from "@/components/ui/chat";
+import { getUserInfo } from "@/lib/auth";
 import toast from 'react-hot-toast';
 
 interface Listing {
@@ -48,7 +50,6 @@ interface Listing {
   imageUrls: string[];
   summary?: string;
   tags: string[];
-  contactMethod: 'email' | 'in_app' | 'sms';
   bedrooms: string;
   bathrooms: string;
   petsAllowed: boolean;
@@ -85,9 +86,20 @@ export default function ListingDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ id: string; token: string } | null>(null);
 
   useEffect(() => {
     fetchListing();
+    // Get current user info using the utility function
+    console.log('Listing page useEffect - checking for user info...');
+    const userInfo = getUserInfo();
+    if (userInfo) {
+      setCurrentUser(userInfo);
+      console.log('User info loaded successfully:', userInfo);
+    } else {
+      console.log('No user info found, user will need to log in');
+    }
   }, [params.listing]);
 
   const fetchListing = async () => {
@@ -124,14 +136,22 @@ export default function ListingDetailPage() {
   };
 
   const handleContact = () => {
-    if (listing?.contactMethod === 'email') {
-      window.location.href = `mailto:${listing.user.email}`;
-    } else if (listing?.contactMethod === 'sms') {
-      window.location.href = `sms:${listing.user.phone}`;
-    } else {
-      toast.success('Opening chat...');
-      // TODO: Implement in-app messaging
+    // Always open in-app messaging
+    console.log('handleContact called, currentUser:', currentUser);
+    console.log('localStorage contents:', {
+      token: localStorage.getItem('token'),
+      user: localStorage.getItem('user'),
+      userInfo: localStorage.getItem('userInfo')
+    });
+    
+    if (!currentUser) {
+      console.log('No currentUser, redirecting to login');
+      toast.error('Please log in to send messages');
+      router.push('/auth/login');
+      return;
     }
+    console.log('Opening chat for listing:', listing?.id, 'with user:', listing?.user.id);
+    setIsChatOpen(true);
   };
 
   const handleLike = () => {
@@ -357,7 +377,7 @@ export default function ListingDetailPage() {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             {/* Price Card */}
-            <Card className="sticky top-24 mb-6">
+            <Card className="top-24 mb-6">
               <CardContent className="p-6">
                 <div className="flex items-baseline justify-between mb-4">
                   <div>
@@ -375,30 +395,8 @@ export default function ListingDetailPage() {
                     onClick={handleContact}
                     className="w-full bg-emerald-600 hover:bg-emerald-700"
                   >
-                    {listing.contactMethod === 'email' ? (
-                      <>
-                        <Mail className="w-4 h-4 mr-2" />
-                        Contact via Email
-                      </>
-                    ) : listing.contactMethod === 'sms' ? (
-                      <>
-                        <Phone className="w-4 h-4 mr-2" />
-                        Contact via SMS
-                      </>
-                    ) : (
-                      <>
-                        <MessageSquare className="w-4 h-4 mr-2" />
-                        Send Message
-                      </>
-                    )}
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    className="w-full border-emerald-200 text-emerald-600 hover:bg-emerald-50"
-                  >
-                    <PhoneCall className="w-4 h-4 mr-2" />
-                    Call Now
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Send Message
                   </Button>
                 </div>
 
@@ -494,6 +492,18 @@ export default function ListingDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Chat Interface */}
+      {isChatOpen && currentUser && (
+        <Chat
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          currentUserId={currentUser.id}
+          token={currentUser.token}
+          initialListingId={listing.id}
+          initialReceiverId={listing.user.id}
+        />
+      )}
     </div>
   );
 } 

@@ -38,6 +38,7 @@ export default function Header() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("userInfo");
     setUser(null);
     toast.success("Logged out successfully!");
     router.push("/");

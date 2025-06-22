@@ -16,6 +16,8 @@ import {
   Mail,
   Phone
 } from 'lucide-react';
+import { LuckyOpinion } from "@/components/ui/lucky-opinion";
+import { Chat } from "@/components/ui/chat";
 
 // Mock data - replace with real data from your backend
 const mockUser = {
@@ -114,12 +116,24 @@ const mockReviews = [
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'profile' | 'favorites' | 'reviews'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'favorites' | 'reviews' | 'messages'>('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [favoriteListings, setFavoriteListings] = useState<typeof allListings>([]);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ id: string; token: string } | null>(null);
 
   useEffect(() => {
     loadFavorites();
+    // Get current user info from localStorage
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      try {
+        const user = JSON.parse(userInfo);
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Error parsing user info:', error);
+      }
+    }
   }, []);
 
   const loadFavorites = () => {
@@ -239,6 +253,18 @@ export default function DashboardPage() {
                 >
                   <MessageSquare className="w-5 h-5" />
                   <span className="font-medium">Reviews ({mockReviews.length})</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('messages')}
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                    activeTab === 'messages'
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <MessageSquare className="w-5 h-5" />
+                  <span className="font-medium">Messages</span>
                 </button>
               </nav>
 
@@ -472,55 +498,66 @@ export default function DashboardPage() {
             {/* Reviews Tab */}
             {activeTab === 'reviews' && (
               <div className="bg-white rounded-lg shadow-lg p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">Reviews & Ratings</h2>
-                  <div className="flex items-center space-x-4">
-                    <div className="text-right">
-                      <div className="text-3xl font-bold text-emerald-600">{mockUser.rating}</div>
-                      <div className="flex items-center space-x-1">
-                        {renderStars(mockUser.rating)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {mockReviews.length === 0 ? (
-                  <div className="text-center py-12">
-                    <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No reviews yet</h3>
-                    <p className="text-gray-600">Complete your first rental to start receiving reviews!</p>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {mockReviews.map((review) => (
-                      <div key={review.id} className="border border-gray-200 rounded-lg p-6">
-                        <div className="flex items-start space-x-4">
-                          <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
-                            <User className="w-6 h-6 text-emerald-600" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-2">
-                              <div>
-                                <h4 className="font-semibold text-gray-900">{review.reviewer}</h4>
-                                <div className="flex items-center space-x-2 mt-1">
-                                  {renderStars(review.rating)}
-                                  <span className="text-sm text-gray-600">{review.date}</span>
-                                </div>
-                              </div>
-                            </div>
-                            <p className="text-gray-700 leading-relaxed">{review.comment}</p>
-                          </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Reviews</h2>
+                <div className="space-y-6">
+                  {mockReviews.map((review) => (
+                    <div key={review.id} className="border-b border-gray-200 pb-6 last:border-b-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-medium text-gray-900">{review.reviewer}</h3>
+                        <div className="flex items-center space-x-2">
+                          {renderStars(review.rating)}
+                          <span className="text-sm text-gray-500">{review.date}</span>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
+                      <p className="text-gray-700">{review.comment}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
+            {/* Messages Tab */}
+            {activeTab === 'messages' && (
+              <div className="bg-white rounded-lg shadow-lg p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">Messages</h2>
+                  <button
+                    onClick={() => setIsChatOpen(true)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Open Chat</span>
+                  </button>
+                </div>
+                
+                <div className="text-center py-12">
+                  <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No messages yet</h3>
+                  <p className="text-gray-600 mb-6">
+                    Start a conversation by contacting a listing owner or responding to messages.
+                  </p>
+                  <button
+                    onClick={() => setIsChatOpen(true)}
+                    className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                  >
+                    Open Messages
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Chat Interface */}
+      {isChatOpen && currentUser && (
+        <Chat
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          currentUserId={currentUser.id}
+          token={currentUser.token}
+        />
+      )}
     </div>
   );
 } 
