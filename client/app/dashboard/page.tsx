@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import {
   ArrowLeft,
@@ -23,7 +23,8 @@ import {
   DollarSign,
   Bed,
   Bath,
-} from "lucide-react";
+} from 'lucide-react';
+import { Chat } from "@/components/ui/chat";
 
 // Mock data - replace with real data from your backend
 const mockUser = {
@@ -35,71 +36,11 @@ const mockUser = {
   program: "Computer Science",
   year: "3rd Year",
   location: "Waterloo, ON",
-
   bio: "Looking for clean, quiet spaces close to campus. Non-smoker, respectful of shared spaces, and always pay rent on time!",
   joinDate: "September 2023",
   rating: 4.8,
   totalReviews: 12,
 };
-
-// This would normally come from your backend API
-const allListings = [
-  {
-    id: "1",
-    title: "Modern Studio Near University Campus",
-    location: "0.3 miles from campus",
-    price: 1200,
-    image:
-      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=500&h=300&fit=crop",
-    bedrooms: 1,
-    bathrooms: 1,
-    availableFrom: "2025-01-15",
-  },
-  {
-    id: "2",
-    title: "Shared 2BR Apartment - Great Roommate",
-    location: "0.5 miles from campus",
-    price: 850,
-    image:
-      "https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=500&h=300&fit=crop",
-    bedrooms: 2,
-    bathrooms: 1,
-    availableFrom: "2025-02-01",
-  },
-  {
-    id: "3",
-    title: "Cozy Private Room in Downtown Area",
-    location: "0.2 miles from campus",
-    price: 950,
-    image:
-      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=500&h=300&fit=crop",
-    bedrooms: 1,
-    bathrooms: 1,
-    availableFrom: "2025-01-20",
-  },
-  {
-    id: "4",
-    title: "Luxury 1BR with Mountain Views",
-    location: "1.2 miles from campus",
-    price: 1500,
-    image:
-      "https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=500&h=300&fit=crop",
-    bedrooms: 1,
-    bathrooms: 1,
-    availableFrom: "2025-03-01",
-  },
-  {
-    id: "5",
-    title: "Budget-Friendly Studio for Students",
-    location: "0.8 miles from campus",
-    price: 750,
-    image:
-      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=500&h=300&fit=crop",
-    bedrooms: 0,
-    bathrooms: 1,
-    availableFrom: "2025-02-15",
-  },
-];
 
 const mockReviews = [
   {
@@ -130,37 +71,49 @@ const mockReviews = [
 
 export default function DashboardPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<
-    "profile" | "favorites" | "reviews" | "listings"
-  >("profile");
+  const [activeTab, setActiveTab] = useState<'profile' | 'listings' | 'favorites' | 'reviews' | 'messages'>('profile');
   const [isEditing, setIsEditing] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ id: string; token: string } | null>(null);
   const [favoriteListings, setFavoriteListings] = useState<any[]>([]);
   const [userListings, setUserListings] = useState<any[]>([]);
   const [loadingListings, setLoadingListings] = useState(false);
   const [loadingFavorites, setLoadingFavorites] = useState(false);
-  useEffect(() => {
-    // Check for tab parameter in URL
-    const tab = searchParams.get("tab");
-    if (tab && ["profile", "favorites", "reviews", "listings"].includes(tab)) {
-      setActiveTab(tab as "profile" | "favorites" | "reviews" | "listings");
-    }
 
+  useEffect(() => {
     loadFavorites();
-    if (activeTab === "listings" || tab === "listings") {
-      loadUserListings();
+    // Get current user info from localStorage
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      try {
+        const user = JSON.parse(userInfo);
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Error parsing user info:', error);
+      }
     }
-    if (activeTab === "favorites" || tab === "favorites") {
+  }, []);
+
+  // Load favorites when favorites tab is selected
+  useEffect(() => {
+    if (activeTab === 'favorites') {
       loadFavoriteListings();
     }
-  }, [activeTab, searchParams]);
+  }, [activeTab]);
+
+  // Load user listings when listings tab is selected
+  useEffect(() => {
+    if (activeTab === 'listings') {
+      loadUserListings();
+    }
+  }, [activeTab]);
+
   const loadFavorites = () => {
     // This just loads the favorite IDs for the count in the sidebar
     const savedFavorites = localStorage.getItem("favorites");
     if (savedFavorites) {
       try {
         const favoriteIds: string[] = JSON.parse(savedFavorites);
-        // Don't set favoriteListings here, just use for count
         return favoriteIds;
       } catch (error) {
         console.error("Error loading favorites:", error);
@@ -218,6 +171,7 @@ export default function DashboardPage() {
       setLoadingFavorites(false);
     }
   };
+
   const removeFavorite = (listingId: string) => {
     const savedFavorites = localStorage.getItem("favorites");
     if (savedFavorites) {
@@ -234,6 +188,7 @@ export default function DashboardPage() {
       }
     }
   };
+
   const loadUserListings = async () => {
     setLoadingListings(true);
     try {
@@ -257,7 +212,6 @@ export default function DashboardPage() {
         setUserListings(data.listings || []);
       } else if (response.status === 401) {
         toast.error("Please log in to view your listings");
-        // Could redirect to login page if needed
       } else {
         toast.error("Failed to load your listings");
       }
@@ -268,6 +222,7 @@ export default function DashboardPage() {
       setLoadingListings(false);
     }
   };
+
   const deleteListing = async (listingId: string) => {
     if (
       !confirm(
@@ -358,7 +313,8 @@ export default function DashboardPage() {
                     {mockUser.rating} ({mockUser.totalReviews} reviews)
                   </span>
                 </div>
-              </div>{" "}
+              </div>
+
               {/* Navigation */}
               <nav className="space-y-2">
                 <button
@@ -371,7 +327,8 @@ export default function DashboardPage() {
                 >
                   <User className="w-5 h-5" />
                   <span className="font-medium">Profile</span>
-                </button>{" "}
+                </button>
+
                 <button
                   onClick={() => setActiveTab("listings")}
                   className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
@@ -382,7 +339,8 @@ export default function DashboardPage() {
                 >
                   <Home className="w-5 h-5" />
                   <span className="font-medium">My Listings</span>
-                </button>{" "}
+                </button>
+
                 <button
                   onClick={() => setActiveTab("favorites")}
                   className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
@@ -393,7 +351,8 @@ export default function DashboardPage() {
                 >
                   <Heart className="w-5 h-5" />
                   <span className="font-medium">Favorites</span>
-                </button>{" "}
+                </button>
+
                 <button
                   onClick={() => setActiveTab("reviews")}
                   className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
@@ -402,10 +361,23 @@ export default function DashboardPage() {
                       : "text-gray-600 hover:bg-gray-50"
                   }`}
                 >
-                  <MessageSquare className="w-5 h-5" />
+                  <Star className="w-5 h-5" />
                   <span className="font-medium">Reviews</span>
                 </button>
-              </nav>{" "}
+
+                <button
+                  onClick={() => setActiveTab('messages')}
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                    activeTab === 'messages'
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <MessageSquare className="w-5 h-5" />
+                  <span className="font-medium">Messages</span>
+                </button>
+              </nav>
+
               {/* Quick Stats */}
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <div className="text-center">
@@ -582,8 +554,9 @@ export default function DashboardPage() {
                   )}
                 </div>
               </div>
-            )}{" "}
-            {/* Favorites Tab */}{" "}
+            )}
+
+            {/* Favorites Tab */}
             {activeTab === "favorites" && (
               <div className="bg-white rounded-lg shadow-lg p-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">
@@ -693,6 +666,7 @@ export default function DashboardPage() {
                 )}
               </div>
             )}
+
             {/* My Listings Tab */}
             {activeTab === "listings" && (
               <div className="bg-white rounded-lg shadow-lg p-8">
@@ -829,6 +803,7 @@ export default function DashboardPage() {
                 )}
               </div>
             )}
+
             {/* Reviews Tab */}
             {activeTab === "reviews" && (
               <div className="bg-white rounded-lg shadow-lg p-8">
@@ -843,6 +818,9 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex items-center space-x-1">
                         {renderStars(mockUser.rating)}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {mockUser.totalReviews} reviews
                       </div>
                     </div>
                   </div>
@@ -894,9 +872,49 @@ export default function DashboardPage() {
                 )}
               </div>
             )}
+
+            {/* Messages Tab */}
+            {activeTab === 'messages' && (
+              <div className="bg-white rounded-lg shadow-lg p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">Messages</h2>
+                  <button
+                    onClick={() => setIsChatOpen(true)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Open Chat</span>
+                  </button>
+                </div>
+                
+                <div className="text-center py-12">
+                  <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No messages yet</h3>
+                  <p className="text-gray-600 mb-6">
+                    Start a conversation by contacting a listing owner or responding to messages.
+                  </p>
+                  <button
+                    onClick={() => setIsChatOpen(true)}
+                    className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                  >
+                    Open Messages
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Chat Interface */}
+      {isChatOpen && currentUser && (
+        <Chat
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          currentUserId={currentUser.id}
+          token={currentUser.token}
+        />
+      )}
     </div>
   );
 }

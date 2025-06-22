@@ -1,6 +1,10 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
+
+
+import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,6 +24,8 @@ import {
   Filter,
   Home,
   Clover,
+  Bed,
+  Bath,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -53,41 +59,64 @@ interface Listing {
   updatedAt: string;
 }
 
+interface Listing {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  location: string;
+  beds: number;
+  baths: number;
+  available_from: string;
+  available_to: string;
+  images: string[];
+  created_at: string;
+  user: {
+    name: string;
+  };
+}
+
 export default function HomePage() {
   const [featuredListings, setFeaturedListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchCity, setSearchCity] = useState('');
+  const router = useRouter();
 
-  // Fetch featured listings from API
   useEffect(() => {
+    const fetchFeaturedListings = async () => {
+      try {
+        // Use Spencer's API structure but main's approach for handling response
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/listings?limit=6`
+        );
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to fetch listings");
+        }
+
+        setFeaturedListings(data.listings || []);
+      } catch (error) {
+        console.error('Error fetching featured listings:', error);
+        // Don't show error toast on main page, just log it
+      } finally {
+        setLoading(false);
+      }
+    };
+    
     fetchFeaturedListings();
   }, []);
 
-  const fetchFeaturedListings = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/listings?limit=6`
-      );
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch listings");
-      }
-
-      setFeaturedListings(data.listings || []);
-    } catch (error) {
-      console.error("Error fetching featured listings:", error);
-      // Don't show error toast on main page, just log it
-    } finally {
-      setLoading(false);
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchCity.trim()) {
+      // Navigate to browse page with location filter
+      router.push(`/listings/browse?location=${encodeURIComponent(searchCity.trim())}`);
+    } else {
+      // Navigate to browse page without filter
+      router.push('/listings/browse');
     }
   };
-
-  // Filter listings that have coordinates for the map
-  const listingsWithCoordinates = featuredListings.filter(
-    (listing) =>
-      listing.coordinates && listing.coordinates.lat && listing.coordinates.lng
-  );
   return (
     <div
       className="min-h-screen"
@@ -137,165 +166,173 @@ export default function HomePage() {
             </p>
 
             {/* Search Bar */}
-            <div className="bg-white rounded-2xl shadow-xl p-8 mb-12">
+            <form onSubmit={handleSearch} className="bg-white rounded-2xl shadow-xl p-8 mb-12">
               <div className="flex flex-col md:flex-row gap-6">
                 <div className="flex-1">
                   <div className="relative">
                     <MapPin className="absolute left-4 top-4 w-6 h-6 text-gray-400" />
                     <Input
-                      placeholder="Enter your university or city"
+                      placeholder="Enter your city"
                       className="pl-12 h-14 border-gray-200 text-lg"
+                      value={searchCity}
+                      onChange={(e) => setSearchCity(e.target.value)}
                     />
                   </div>
                 </div>
-                <Button className="h-14 px-10 bg-emerald-600 hover:bg-emerald-700 hover:scale-105 transition-all duration-300 ease-in-out hover:shadow-xl text-lg">
+                <Button 
+                  type="submit"
+                  className="h-14 px-10 bg-emerald-600 hover:bg-emerald-700 hover:scale-105 transition-all duration-300 ease-in-out hover:shadow-xl text-lg"
+                >
                   <Search className="w-6 h-6 mr-3" />
                   Search
                 </Button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       </section>{" "}
       {/* Featured Listings */}
       <section className="py-16 px-4">
         <div className="container mx-auto">
-          <div className="flex items-center justify-between mb-12">
-            <div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                Featured Lucky Finds
-              </h3>
-              <p className="text-gray-600">
-                Handpicked subleases near popular campuses
-              </p>
-            </div>{" "}
-            <Button
-              variant="outline"
-              className="border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 hover:scale-105 transition-all duration-300 ease-in-out hover:shadow-lg"
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              Filters
-            </Button>
+          <div className="mb-12">
+            <h3 className="text-3xl font-bold text-gray-900 mb-2">
+              Featured Lucky Finds
+            </h3>
+            <p className="text-gray-600">
+              Handpicked subleases near popular campuses
+            </p>
           </div>
           {loading ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[...Array(6)].map((_, i) => (
-                <Card key={i} className="overflow-hidden">
-                  <div className="w-full h-48 bg-gray-200 animate-pulse"></div>
+                <Card key={i} className="overflow-hidden animate-pulse">
+                  <div className="w-full h-48 bg-gray-200"></div>
                   <CardContent className="p-6">
                     <div className="space-y-3">
-                      <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                      <div className="h-3 bg-gray-200 rounded animate-pulse w-3/4"></div>
-                      <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      <div className="h-8 bg-gray-200 rounded w-1/4"></div>
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
-          ) : (
+          ) : featuredListings.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredListings.slice(0, 6).map((listing, index) => (
-                <Card
-                  key={listing.id}
-                  className="overflow-hidden hover:shadow-xl transition-shadow"
-                >
-                  <div className="relative">
-                    {listing.imageUrls && listing.imageUrls.length > 0 ? (
-                      <div className="w-full h-48 relative">
-                        <Image
-                          src={listing.imageUrls[0]}
-                          alt={listing.title}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-full h-48 bg-gradient-to-r from-emerald-100 to-emerald-200 flex items-center justify-center">
-                        <Home className="w-16 h-16 text-emerald-600" />
-                      </div>
-                    )}
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="absolute top-3 right-3 bg-white/90 hover:bg-white hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
-                    >
-                      <Heart className="w-4 h-4" />
-                    </Button>
-                    <Badge className="absolute top-3 left-3 bg-emerald-600">
-                      {index === 0
-                        ? "Featured"
-                        : index === 1
-                        ? "Hot Deal"
-                        : "New"}
-                    </Badge>
-                  </div>
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h4 className="font-semibold text-lg line-clamp-2">
-                          {listing.title}
-                        </h4>
-                        <p className="text-gray-600 flex items-center">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {listing.location}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-emerald-600">
-                          ${listing.price}
-                        </div>
-                        <div className="text-sm text-gray-500">/month</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
-                      <span className="flex items-center">
-                        <Users className="w-4 h-4 mr-1" />
-                        {listing.bedrooms === "studio"
-                          ? "Studio"
-                          : `${listing.bedrooms} bed`}
-                      </span>
-                      <span>{listing.bathrooms} bath</span>
-                      <span className="capitalize">{listing.listingType}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Avatar className="w-6 h-6">
-                          <AvatarFallback>
-                            {listing.user.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm text-gray-600">
-                          {listing.user.name}
-                        </span>
-                      </div>
-                      <Link href={`/listings/browse/${listing.id}`}>
+              {featuredListings.slice(0, 6).map((listing, index) => {
+                const badgeColors = ['bg-emerald-600', 'bg-orange-500', 'bg-blue-500'];
+                const badgeTexts = ['Featured', 'Hot Deal', 'New'];
+                const gradientColors = [
+                  'from-emerald-100 to-emerald-200',
+                  'from-blue-100 to-blue-200', 
+                  'from-purple-100 to-purple-200'
+                ];
+                const iconColors = ['text-emerald-600', 'text-blue-600', 'text-purple-600'];
+                
+                return (
+                  <Card
+                    key={listing.id}
+                    className="overflow-hidden hover:shadow-xl transition-shadow"
+                  >
+                    <Link href={`/listings/browse/${listing.id}`}>
+                      <div className="relative cursor-pointer">
+                        {listing.imageUrls && listing.imageUrls.length > 0 ? (
+                          <div className="w-full h-48 relative">
+                            <Image
+                              src={listing.imageUrls[0]}
+                              alt={listing.title}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className={`w-full h-48 bg-gradient-to-r ${gradientColors[index % 3]} flex items-center justify-center`}>
+                            <Home className={`w-16 h-16 ${iconColors[index % 3]}`} />
+                          </div>
+                        )}
                         <Button
                           size="sm"
-                          variant="outline"
-                          className="text-emerald-600 border-emerald-600 hover:bg-emerald-50"
+                          variant="secondary"
+                          className="absolute top-3 right-3 bg-white/90 hover:bg-white hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
                         >
-                          View Details
+                          <Heart className="w-4 h-4" />
                         </Button>
+                        <Badge className={`absolute top-3 left-3 ${badgeColors[index % 3]}`}>
+                          {badgeTexts[index % 3]}
+                        </Badge>
+                      </div>
+                    </Link>
+                    <CardContent className="p-6">
+                      <Link href={`/listings/browse/${listing.id}`}>
+                        <div className="cursor-pointer">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h4 className="font-semibold text-lg line-clamp-2 group-hover:text-emerald-600 transition-colors">
+                                {listing.title}
+                              </h4>
+                              <p className="text-gray-600 flex items-center">
+                                <MapPin className="w-4 h-4 mr-1" />
+                                {listing.location}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-emerald-600">
+                                ${listing.price}
+                              </div>
+                              <div className="text-sm text-gray-500">/month</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
+                            <span className="flex items-center">
+                              <Bed className="w-4 h-4 mr-1" />
+                              {listing.bedrooms === "studio"
+                                ? "Studio"
+                                : `${listing.bedrooms} bed`}
+                            </span>
+                            <span className="flex items-center">
+                              <Bath className="w-4 h-4 mr-1" />
+                              {listing.bathrooms} bath
+                            </span>
+                            <span className="capitalize">{listing.listingType}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <Avatar className="w-6 h-6">
+                                <AvatarFallback>
+                                  {listing.user.name
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")
+                                    .toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-sm text-gray-600">
+                                {listing.user.name}
+                              </span>
+                            </div>
+                            <div className="flex items-center">
+                              <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                              <span className="text-sm text-gray-600 ml-1">
+                                {(4.5 + Math.random() * 0.5).toFixed(1)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              {featuredListings.length === 0 && !loading && (
-                <div className="col-span-full text-center py-12">
-                  <Home className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                    No listings available
-                  </h3>
-                  <p className="text-gray-500">
-                    Check back later for new listings!
-                  </p>
-                </div>
-              )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Home className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                No listings available
+              </h3>
+              <p className="text-gray-500">
+                Check back later for new listings!
+              </p>
             </div>
           )}
           <div className="text-center mt-12">

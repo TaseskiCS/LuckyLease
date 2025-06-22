@@ -68,6 +68,8 @@ After the pros and cons, provide a **compatibility rating** based on the followi
 return a number with **1 decimal place** (e.g., 8.7).
 - Use a leprechaun-themed twist strictly when giving the number rating, not for the pro and cons list but keep it to a single line.
 
+Make sure the aswers are appropriate for a professional website. No profanity or inappropriate content.
+
 Profile:
 {
   "budget": ${seekerProfile.budget},
