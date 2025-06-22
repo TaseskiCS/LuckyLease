@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { InteractiveMap } from "@/components/ui/interactive-map";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,8 @@ import {
   Bath,
   Bed,
   ChevronDown,
+  Filter,
+  X,
 } from "lucide-react";
 import schoolsData from "@/data/schools.json";
 
@@ -31,11 +33,10 @@ interface Region {
   colleges?: School[];
 }
 
-// Enhanced sample listings for the map page
 const allListings = [
   {
     id: "1",
-    position: [43.6629, -79.3957], // University of Toronto (St. George)
+    position: [43.6629, -79.3957] as [number, number], // University of Toronto (St. George)
     title: "Modern Studio Near UofT",
     price: 1800,
     priceDisplay: "$1,800/month",
@@ -57,7 +58,7 @@ const allListings = [
   },
   {
     id: "2",
-    position: [43.7735, -79.5019], // York University
+    position: [43.7735, -79.5019] as [number, number], // York University
     title: "Shared 2BR at York Village",
     price: 950,
     priceDisplay: "$950/month",
@@ -97,6 +98,8 @@ export default function MapPage() {
     airConditioning: false,
   });
 
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+
   // Filter listings based on current filters
   const filteredListings = useMemo(() => {
     return allListings.filter((listing) => {
@@ -110,16 +113,7 @@ export default function MapPage() {
         const universityMatch = listing.university
           .toLowerCase()
           .includes(searchLower);
-        const locationMatch = listing.location
-          .toLowerCase()
-          .includes(searchLower);
-        if (
-          !titleMatch &&
-          !descriptionMatch &&
-          !universityMatch &&
-          !locationMatch
-        )
-          return false;
+        if (!titleMatch && !descriptionMatch && !universityMatch) return false;
       }
 
       // Price range filters
@@ -205,25 +199,78 @@ export default function MapPage() {
       airConditioning: false,
     });
   };
+  const toggleMobileFilters = () => {
+    setIsMobileFiltersOpen(!isMobileFiltersOpen);
+  };
+
+  // Prevent body scroll when component mounts
+  useEffect(() => {
+    // Prevent body scroll
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = "unset";
+      document.documentElement.style.overflow = "unset";
+    };
+  }, []);
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white">
-      <div className="flex h-screen">
-        {/* Filters Sidebar - Always Visible */}
-        <div className="w-96 bg-white border-r border-gray-200 overflow-y-auto">
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
+    <div className="fixed top-16 left-0 right-0 bottom-0 bg-gradient-to-b from-emerald-50 to-white flex flex-col overflow-hidden">
+      {/* Mobile Filter Toggle Button */}
+      <div className="md:hidden bg-white border-b border-gray-200 px-4 py-2 flex-shrink-0 z-40">
+        <Button
+          onClick={toggleMobileFilters}
+          variant="outline"
+          className="w-full flex items-center justify-center space-x-2"
+        >
+          <Filter className="w-4 h-4" />
+          <span>Filters ({filteredListings.length} results)</span>
+        </Button>
+      </div>
+
+      <div className="flex flex-1 relative overflow-hidden min-h-0">
+        {/* Filters Sidebar */}
+        <div
+          className={`
+          ${isMobileFiltersOpen ? "translate-x-0" : "-translate-x-full"} 
+          md:translate-x-0 
+          fixed md:relative
+          top-0 md:top-0 
+          left-0 
+          z-50 md:z-auto 
+          w-80 md:w-72 lg:w-80 xl:w-96 
+          h-full 
+          bg-white 
+          border-r border-gray-200 
+          overflow-y-auto 
+          transition-transform duration-300 ease-in-out
+        `}
+        >
+          <div className="p-4 md:p-6">
+            <div className="flex items-center justify-between mb-4 md:mb-6">
               <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearFilters}
-                className="text-emerald-600 hover:bg-emerald-50"
-              >
-                Clear All
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="text-emerald-600 hover:bg-emerald-50"
+                >
+                  Clear All
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleMobileFilters}
+                  className="md:hidden text-gray-600"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
             {/* Search */}
-            <div className="mb-6">
+            <div className="mb-4 md:mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Search
               </label>
@@ -240,7 +287,7 @@ export default function MapPage() {
               </div>
             </div>
             {/* Price Range */}
-            <div className="mb-6">
+            <div className="mb-4 md:mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Price Range
               </label>
@@ -264,7 +311,7 @@ export default function MapPage() {
               </div>{" "}
             </div>
             {/* Property Type */}
-            <div className="mb-6">
+            <div className="mb-4 md:mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Property Type
               </label>
@@ -286,7 +333,7 @@ export default function MapPage() {
               </div>
             </div>{" "}
             {/* Bedrooms */}
-            <div className="mb-6">
+            <div className="mb-4 md:mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Bedrooms
               </label>
@@ -307,10 +354,10 @@ export default function MapPage() {
                   <option value="5+">5+ Bedrooms</option>
                 </select>
                 <Bed className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
-              </div>
+              </div>{" "}
             </div>
             {/* Bathrooms */}
-            <div className="mb-6">
+            <div className="mb-4 md:mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Bathrooms
               </label>
@@ -335,7 +382,7 @@ export default function MapPage() {
               </div>
             </div>
             {/* School/Institution */}
-            <div className="mb-6">
+            <div className="mb-4 md:mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Nearest School/Institution
               </label>
@@ -390,10 +437,10 @@ export default function MapPage() {
                   ))}
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
-              </div>
+              </div>{" "}
             </div>
             {/* Availability Period */}
-            <div className="mb-6">
+            <div className="mb-4 md:mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Availability Period
               </label>
@@ -433,7 +480,7 @@ export default function MapPage() {
               </div>
             </div>
             {/* Amenities */}
-            <div className="mb-6">
+            <div className="mb-4 md:mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Amenities
               </label>
@@ -449,7 +496,6 @@ export default function MapPage() {
                   />
                   <span className="text-sm text-gray-700">🐾 Pets Allowed</span>
                 </label>
-
                 <label className="flex items-center space-x-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -466,7 +512,6 @@ export default function MapPage() {
                     </span>
                   </div>
                 </label>
-
                 <label className="flex items-center space-x-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -483,7 +528,6 @@ export default function MapPage() {
                     </span>
                   </div>
                 </label>
-
                 <label className="flex items-center space-x-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -499,20 +543,35 @@ export default function MapPage() {
                       Air Conditioning
                     </span>
                   </div>
-                </label>
+                </label>{" "}
               </div>{" "}
             </div>
             {/* Results Count */}
-            <div className="mt-6 p-3 bg-emerald-50 rounded-lg">
+            <div className="mt-4 md:mt-6 p-3 bg-emerald-50 rounded-lg">
               <p className="text-sm text-emerald-700 font-medium">
                 {filteredListings.length} of {allListings.length} listings shown
               </p>
             </div>
+            {/* Mobile Apply Button */}
+            <div className="md:hidden mt-4 pt-4 border-t border-gray-200">
+              <Button
+                onClick={toggleMobileFilters}
+                className="w-full bg-emerald-600 hover:bg-emerald-700"
+              >
+                View {filteredListings.length} Results
+              </Button>
+            </div>
           </div>
-        </div>
-
-        {/* Map - Full Screen */}
-        <div className="flex-1 relative">
+        </div>{" "}
+        {/* Mobile Overlay */}
+        {isMobileFiltersOpen && (
+          <div
+            className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={toggleMobileFilters}
+          />
+        )}{" "}
+        {/* Map Container */}
+        <div className="flex-1 relative w-full min-h-0 overflow-hidden">
           <InteractiveMap
             height="100%"
             className="w-full h-full"
