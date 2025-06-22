@@ -38,6 +38,10 @@ export function InteractiveMap({
   fullScreen = false,
   listings = [],
 }: InteractiveMapProps) {
+  // Debug logging
+  console.log("InteractiveMap received listings:", listings.length);
+  console.log("InteractiveMap listings data:", listings);
+
   // Calculate map center and zoom based on listings
   const getMapCenterAndZoom = (): {
     center: [number, number];

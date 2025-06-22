@@ -89,6 +89,11 @@ export function Map({
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const [isClient, setIsClient] = useState(false);
+
+  // Debug logging
+  console.log("Map component received markers:", markers.length);
+  console.log("Map markers data:", markers);
+
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -167,28 +172,46 @@ export function Map({
 
   // Handle markers separately
   useEffect(() => {
-    if (!mapInstanceRef.current) return;
+    console.log("Map markers useEffect triggered");
+    console.log("isClient:", isClient);
+    console.log("mapInstanceRef.current exists:", !!mapInstanceRef.current);
+    console.log("markers array:", markers);
 
-    try {
-      // Clear existing markers
-      mapInstanceRef.current.eachLayer((layer) => {
-        if (layer instanceof L.Marker) {
-          mapInstanceRef.current?.removeLayer(layer);
-        }
-      });
+    if (!isClient || !mapInstanceRef.current) {
+      console.log("No client or map instance, skipping marker update");
+      return;
+    }
 
-      // Add new markers
-      const markerGroup = L.featureGroup();
+    // Add a small delay to ensure map is fully initialized
+    const timeoutId = setTimeout(() => {
+      if (!mapInstanceRef.current) {
+        console.log("Map instance no longer exists after timeout");
+        return;
+      }
 
-      markers.forEach((marker) => {
-        if (mapInstanceRef.current) {
-          try {
-            const leafletMarker = L.marker(marker.position, {
-              icon: greenIcon,
-            });
+      try {
+        console.log("Clearing existing markers");
+        // Clear existing markers
+        mapInstanceRef.current.eachLayer((layer) => {
+          if (layer instanceof L.Marker) {
+            mapInstanceRef.current?.removeLayer(layer);
+          }
+        });
 
-            if (marker.popup || marker.title || marker.price) {
-              const popupContent = `
+        console.log("Adding", markers.length, "new markers");
+        // Add new markers
+        const markerGroup = L.featureGroup();
+
+        markers.forEach((marker, index) => {
+          console.log(`Processing marker ${index}:`, marker);
+          if (mapInstanceRef.current) {
+            try {
+              const leafletMarker = L.marker(marker.position, {
+                icon: greenIcon,
+              });
+
+              if (marker.popup || marker.title || marker.price) {
+                const popupContent = `
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 compact-popup">
                   <div class="p-3">
                     ${
@@ -231,8 +254,8 @@ export function Map({
                         ? `<p class="text-gray-600 text-xs mb-3 line-clamp-2">${marker.popup}</p>`
                         : ""
                     }                ${
-                marker.listingUrl
-                  ? `
+                  marker.listingUrl
+                    ? `
                       <a href="${marker.listingUrl}" class="inline-flex items-center justify-center w-full px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs rounded-md transition-colors duration-200 no-underline cursor-pointer" style="color: white !important;">
                         <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -241,50 +264,67 @@ export function Map({
                         View Details
                       </a>
                     `
-                  : ""
-              }
+                    : ""
+                }
                   </div>
                 </div>
               `;
-              leafletMarker.bindPopup(popupContent, {
-                className: "custom-popup",
-                closeButton: true,
-                maxWidth: 220,
-                minWidth: 200,
-              });
-            }
-
-            markerGroup.addLayer(leafletMarker);
-          } catch (markerError) {
-            console.error("Error creating marker:", markerError);
-          }
-        }
-      });
-
-      // Add marker group to map
-      if (markers.length > 0 && mapInstanceRef.current) {
-        markerGroup.addTo(mapInstanceRef.current);
-
-        // If we have multiple markers, fit the map to show all markers with some padding
-        if (markers.length > 1) {
-          try {
-            setTimeout(() => {
-              if (mapInstanceRef.current) {
-                mapInstanceRef.current.fitBounds(markerGroup.getBounds(), {
-                  padding: [20, 20],
-                  maxZoom: 13, // Don't zoom in too much even for close markers
+                leafletMarker.bindPopup(popupContent, {
+                  className: "custom-popup",
+                  closeButton: true,
+                  maxWidth: 220,
+                  minWidth: 200,
                 });
               }
-            }, 100);
-          } catch (boundsError) {
-            console.error("Error fitting bounds:", boundsError);
+              markerGroup.addLayer(leafletMarker);
+              console.log(`Marker ${index} added to group`);
+            } catch (markerError) {
+              console.error("Error creating marker:", markerError);
+            }
           }
+        });
+
+        // Add marker group to map
+        if (markers.length > 0 && mapInstanceRef.current) {
+          console.log(
+            "Adding marker group to map with",
+            markers.length,
+            "markers"
+          );
+          markerGroup.addTo(mapInstanceRef.current);
+          console.log("Marker group added to map");
+
+          // If we have multiple markers, fit the map to show all markers with some padding
+          if (markers.length > 1) {
+            console.log("Fitting bounds for multiple markers");
+            try {
+              setTimeout(() => {
+                if (mapInstanceRef.current) {
+                  mapInstanceRef.current.fitBounds(markerGroup.getBounds(), {
+                    padding: [20, 20],
+                    maxZoom: 13, // Don't zoom in too much even for close markers
+                  });
+                  console.log("Bounds fitted");
+                }
+              }, 100);
+            } catch (boundsError) {
+              console.error("Error fitting bounds:", boundsError);
+            }
+          }
+        } else {
+          console.log("No markers to add or no map instance");
         }
+      } catch (error) {
+        console.error("Error handling markers:", error);
       }
-    } catch (error) {
-      console.error("Error handling markers:", error);
-    }
-  }, [markers]);
+    }, 100); // End of setTimeout
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [markers, isClient]); // Add isClient dependency
 
   if (!isClient) {
     return (
