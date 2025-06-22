@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
@@ -64,6 +64,7 @@ export default function CreateListingPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string[]>([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   
   const {
     register,
@@ -71,6 +72,17 @@ export default function CreateListingPage() {
     formState: { errors },
     setValue
   } = useForm<ListingFormData>();
+
+  // Check authentication on page load
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Please log in to create a listing');
+      router.push('/auth/login');
+      return;
+    }
+    setIsAuthenticated(true);
+  }, [router]);
 
   // Handle image preview
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,6 +112,14 @@ export default function CreateListingPage() {
     try {
       setIsSubmitting(true);
       
+      // Check authentication before proceeding
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Please log in to create a listing');
+        router.push('/auth/login');
+        return;
+      }
+      
       const formData = new FormData();
       formData.append('title', data.title);
       formData.append('description', data.description);
@@ -125,19 +145,26 @@ export default function CreateListingPage() {
         });
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/listings`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const response = await fetch(`${apiUrl}/api/listings`, {
         method: 'POST',
         body: formData,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
 
       if (response.ok) {
         toast.success('Listing created successfully!');
         router.push('/listings/browse');
+      } else if (response.status === 401 || response.status === 403) {
+        // Authentication failed - token might be expired
+        localStorage.removeItem('token');
+        toast.error('Your session has expired. Please log in again.');
+        router.push('/auth/login');
       } else {
-        throw new Error('Failed to create listing');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to create listing');
       }
     } catch (error) {
       console.error('Error creating listing:', error);
@@ -146,6 +173,18 @@ export default function CreateListingPage() {
       setIsSubmitting(false);
     }
   };
+
+  // Show loading while checking authentication
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50">
