@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -69,12 +68,9 @@ export default function CreateListingPage() {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
     setValue
   } = useForm<ListingFormData>();
-
-  const watchImages = watch('images');
 
   // Handle image preview
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,14 +109,14 @@ export default function CreateListingPage() {
       formData.append('bathrooms', data.bathrooms);
       formData.append('startDate', data.startDate);
       formData.append('endDate', data.endDate);
-      formData.append('contactMethod', data.contactMethod);
+      formData.append('contactMethod', data.contactMethod || 'email');
       if (data.school) {
         formData.append('school', data.school);
       }
-      formData.append('petsAllowed', data.petsAllowed.toString());
-      formData.append('laundryInBuilding', data.laundryInBuilding.toString());
-      formData.append('parkingAvailable', data.parkingAvailable.toString());
-      formData.append('airConditioning', data.airConditioning.toString());
+      formData.append('petsAllowed', (data.petsAllowed || false).toString());
+      formData.append('laundryInBuilding', (data.laundryInBuilding || false).toString());
+      formData.append('parkingAvailable', (data.parkingAvailable || false).toString());
+      formData.append('airConditioning', (data.airConditioning || false).toString());
       
       // Add images
       if (data.images) {
@@ -129,8 +125,7 @@ export default function CreateListingPage() {
         });
       }
 
-      // TODO: Replace with actual API call
-      const response = await fetch('/api/listings', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/listings`, {
         method: 'POST',
         body: formData,
         headers: {
@@ -585,10 +580,7 @@ export default function CreateListingPage() {
                           multiple
                           accept="image/*"
                           {...register('images')}
-                          onChange={(e) => {
-                            register('images').onChange(e);
-                            handleImageChange(e);
-                          }}
+                          onChange={handleImageChange}
                           className="hidden"
                         />
                       </div>

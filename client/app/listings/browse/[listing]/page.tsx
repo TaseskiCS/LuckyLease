@@ -92,100 +92,14 @@ export default function ListingDetailPage() {
 
   const fetchListing = async () => {
     try {
-        //using mock data for now
-      // const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/listings/${params.listing}`);
-      // const data = await response.json();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/listings/${params.listing}`);
+      const data = await response.json();
 
-      // if (!response.ok) {
-      //   throw new Error(data.error || 'Failed to fetch listing');
-      // }
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch listing');
+      }
 
-      // setListing(data.listing);
-
-      // Mock data for development
-      const mockListing: Listing = {
-        id: params.listing as string,
-        title: 'Modern Studio Near University Campus',
-        description: 'Beautiful studio apartment with all amenities included. Perfect for students who want a quiet, comfortable place to study and live. Features include high-speed WiFi, modern appliances, and a great location.',
-        detailedDescription: `This stunning studio apartment offers the perfect blend of comfort and convenience for university students. Located just 0.3 miles from campus, you'll enjoy easy access to classes, libraries, and campus facilities.
-
-The apartment features:
-• Fully furnished with modern, comfortable furniture
-• High-speed WiFi included in rent
-• Modern kitchen with stainless steel appliances
-• Large windows providing plenty of natural light
-• Built-in storage solutions
-• Hardwood floors throughout
-• Private balcony with city views
-
-The building offers:
-• 24/7 security and controlled access
-• On-site laundry facilities
-• Parking available (additional fee)
-• Pet-friendly policy
-• Air conditioning and heating
-• Elevator access
-
-The neighborhood is quiet and safe, perfect for focused studying. You'll find grocery stores, restaurants, and public transportation within walking distance.`,
-        price: 1200,
-        location: '0.3 miles from campus',
-        startDate: '2025-01-15',
-        endDate: '2025-05-15',
-        imageUrls: [
-          'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1560448075-bb485b067938?w=800&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=800&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1560448075-8c4c3c4c4c4c?w=800&h=600&fit=crop'
-        ],
-        summary: 'Perfect for students, fully furnished with WiFi included',
-        tags: ['furnished', 'wifi', 'modern', 'quiet'],
-        contactMethod: 'email',
-        bedrooms: '1',
-        bathrooms: '1',
-        petsAllowed: true,
-        laundryInBuilding: true,
-        parkingAvailable: true,
-        airConditioning: true,
-        school: 'University of Example',
-        user: {
-          id: '1',
-          name: 'Jessica S.',
-          email: 'jessica@example.com',
-          avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-          phone: '+1 (555) 123-4567',
-          verified: true,
-          memberSince: '2023-03-15',
-          responseRate: 98,
-          responseTime: '2 hours'
-        },
-        _count: { likes: 12 },
-        createdAt: '2024-01-01T10:00:00Z',
-        updatedAt: '2024-01-01T10:00:00Z',
-        rules: [
-          'No smoking inside the apartment',
-          'Quiet hours from 10 PM to 8 AM',
-          'No parties or large gatherings',
-          'Keep common areas clean',
-          'Respect building security protocols'
-        ],
-        utilities: [
-          'Electricity',
-          'Water',
-          'High-speed WiFi',
-          'Heating and cooling',
-          'Trash and recycling'
-        ],
-        nearbyAmenities: [
-          'University campus (0.3 miles)',
-          'Grocery store (0.2 miles)',
-          'Coffee shops (0.1 miles)',
-          'Public library (0.4 miles)',
-          'Bus stop (0.1 miles)',
-          'Restaurants and cafes (0.2 miles)'
-        ]
-      };
-
-      setListing(mockListing);
+      setListing(data.listing);
     } catch (error) {
       toast.error('Failed to load listing');
       console.error('Error fetching listing:', error);
