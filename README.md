@@ -40,15 +40,15 @@ Lucky provides a structured pros and cons analysis with a compatibility rating (
 
 ```
 SPURHACK25/
-├── client/                 # Next.js frontend
-│   ├── app/               # App Router pages
-│   │   ├── auth/          # Authentication pages
-│   │   ├── listings/      # Listing pages (browse, create, details)
-│   │   ├── dashboard/     # User dashboard
-│   │   ├── map/           # Interactive map
-│   │   ├── contact/       # Contact & support
-│   │   └── terms/         # Terms of service
-│   ├── components/        # Reusable UI components
+├── client/               # Next.js frontend
+│   ├── app/              # App Router pages
+│   │   ├── auth/         # Authentication pages
+│   │   ├── listings/     # Listing pages (browse, create, details)
+│   │   ├── dashboard/    # User dashboard
+│   │   ├── map/          # Interactive map
+│   │   ├── contact/      # Contact & support
+│   │   └── terms/        # Terms of service
+│   ├── components/       # Reusable UI components
 │   │   └── ui/           # Shadcn/ui components + custom components
 │   ├── lib/              # Utility libraries
 │   └── data/             # Static data files (schools, etc.)
