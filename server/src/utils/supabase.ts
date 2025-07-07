@@ -48,6 +48,7 @@ export const uploadImage = async (file: Buffer, fileName: string): Promise<strin
       .from(bucket)
       .getPublicUrl(fileName);
 
+    console.log('Image uploaded successfully. Public URL:', publicUrl);
     return publicUrl;
   } catch (error) {
     console.error('Image upload failed:', error);

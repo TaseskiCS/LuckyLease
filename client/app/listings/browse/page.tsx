@@ -151,6 +151,16 @@ export default function ListingsPage() {
         _count: { likes: l._count?.likes ?? 0 },
       }));
 
+      // Debug: Log image URLs
+      console.log('Fetched listings with images:');
+      data.forEach((listing, index) => {
+        console.log(`Listing ${index + 1} (${listing.title}):`, {
+          id: listing.id,
+          imageUrls: listing.imageUrls,
+          imageCount: listing.imageUrls?.length || 0
+        });
+      });
+
       if (filters.bedrooms) {
         const f = filters.bedrooms;
         if (f.endsWith("+")) {
@@ -654,7 +664,11 @@ export default function ListingsPage() {
                             alt={l.title}
                             className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-200"
                             onError={(e) => {
+                              console.error('Image failed to load:', l.imageUrls[0]);
                               e.currentTarget.style.display = "none";
+                            }}
+                            onLoad={() => {
+                              console.log('Image loaded successfully:', l.imageUrls[0]);
                             }}
                           />
                         ) : (
