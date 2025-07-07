@@ -7,9 +7,9 @@ A full-stack MVP for a peer-to-peer sublet marketplace think Facebook Marketplac
 ## 🚀 Features
 
 ### Core Features
+- **🍀 Lucky Opinion AI**: Personalized AI advisor that analyzes listings and provides compatibility ratings with pros/cons
 - **Authentication**: Email/password signup and login with JWT
 - **Listings**: Create, browse, search, and filter property listings with detailed amenities
-- **🍀 Lucky Opinion AI**: Personalized AI advisor that analyzes listings and provides compatibility ratings with pros/cons
 - **Image Upload**: Multiple image uploads with Supabase Storage
 - **Real-time Chat**: Private messaging via Socket.io
 - **Interactive Map**: Location-based property discovery with coordinate mapping
@@ -72,7 +72,7 @@ SPURHACK25/
 
 ## 👥 Team
 
-Built by the LuckyLease team for **SPURHACKS25**:
+Built by the LuckyLease team for **[SPURHACKS25](https://spurhacks.com)**:
 - **[Michael Marsillo](https://www.linkedin.com/in/michaelmarsillo)** 
 - **[Tony Taseski](https://www.linkedin.com/in/a-taseski)**
 - **[Gurshan Sidhar](https://www.linkedin.com/in/gurshan-sidhar)**
