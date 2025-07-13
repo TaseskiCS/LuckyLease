@@ -1,6 +1,6 @@
 # LuckyLease - A Sublet Marketplace
 
-A full-stack MVP for a peer-to-peer sublet marketplace think Facebook Marketplace but designed for short-term housing like student sublets and intern rentals.
+ A web-based platform for short-term subletting, focused on student and intern housing, like Facebook Marketplace, but purpose-built for rentals.
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
