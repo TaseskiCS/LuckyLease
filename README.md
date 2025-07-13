@@ -83,4 +83,4 @@ Built by the LuckyLease team for **[SPURHACKS25](https://spurhacks.com)**:
 For support, email LuckyLease2025@gmail.com or create an issue in the repository.
 
 ---
-*Built for SPURHACKS25*
+*[Devpost Link](https://devpost.com/software/luckylease)*
